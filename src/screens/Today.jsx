@@ -10,6 +10,7 @@ import { useToast } from '../components/Toast.jsx'
 import LoadState from '../components/LoadState.jsx'
 import MakeupBanner from '../components/MakeupBanner.jsx'
 import Birthdays from '../components/Birthdays.jsx'
+import { asset } from '../components/Doodle.jsx'
 import { birthdaysBetween } from '../lib/students.js'
 import { loadSettings } from '../lib/payments.js'
 
@@ -71,13 +72,16 @@ export default function Today() {
 
   return (
     <main className="screen">
-      <header className="day-nav">
-        <button className="btn-icon" onClick={() => goTo(addDays(date, -1))} aria-label="Previous day">‹</button>
-        <div>
+      <header className="home-header">
+        <img className="house" src={asset('house.png')} alt="" />
+        <div className="title">
           <h1>{dayTitle(date)}</h1>
           <p className="muted">{weekdayName(isoWeekday(date))} {formatDate(date)}</p>
         </div>
-        <button className="btn-icon" onClick={() => goTo(addDays(date, 1))} aria-label="Next day">›</button>
+        <div className="home-arrows">
+          <button className="btn-icon round-btn" onClick={() => goTo(addDays(date, -1))} aria-label="Previous day">‹</button>
+          <button className="btn-icon round-btn" onClick={() => goTo(addDays(date, 1))} aria-label="Next day">›</button>
+        </div>
       </header>
       {date !== todayISO() && (
         <button className="btn-secondary" onClick={() => goTo(todayISO())}>Back to today</button>

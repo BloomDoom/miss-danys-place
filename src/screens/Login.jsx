@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase.js'
+import { asset } from '../components/Doodle.jsx'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -28,7 +29,8 @@ export default function Login() {
 
   return (
     <main className="screen login">
-      <h1>Ms Dany's Place</h1>
+      <img className="login-logo" src={asset('logo.webp')} alt="Ms Dany's Place: creative and happy learning" />
+      <h1>Welcome back</h1>
       <form onSubmit={handleSubmit}>
         <label>
           Email

@@ -15,6 +15,7 @@ import StudentAbsences from '../components/StudentAbsences.jsx'
 import StudentRewards from '../components/StudentRewards.jsx'
 import StudentAttendance from '../components/StudentAttendance.jsx'
 import BackButton from '../components/BackButton.jsx'
+import Doodle from '../components/Doodle.jsx'
 
 async function loadStudent(id) {
   const [student, groups] = await Promise.all([
@@ -84,10 +85,13 @@ function ViewStudent({ student, onEdit, reload }) {
 
   return (
     <>
-      <h1>
-        {student.name}
-        {!student.active && <span className="badge">Inactive</span>}
-      </h1>
+      <div className="doodle-wrap">
+        <h1>
+          {student.name}
+          {!student.active && <span className="badge">Inactive</span>}
+        </h1>
+        <Doodle green />
+      </div>
 
       <p className="group-links">
         {groups.length === 0
@@ -147,8 +151,16 @@ function Contact({ label, phone }) {
       </p>
       {phone && (
         <div className="btn-row">
-          <a className="btn-secondary" href={callLink(phone)}>Call</a>
-          {whatsapp && <a className="btn-secondary" href={whatsapp} target="_blank" rel="noreferrer">WhatsApp</a>}
+          <a className="btn-secondary" href={callLink(phone)}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z" /></svg>
+            Call
+          </a>
+          {whatsapp && (
+            <a className="btn-secondary" href={whatsapp} target="_blank" rel="noreferrer">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.2 7.5L3 21l2-5.8A8.4 8.4 0 1 1 21 11.5z" /></svg>
+              WhatsApp
+            </a>
+          )}
         </div>
       )}
     </section>

@@ -10,6 +10,7 @@ import { useToast } from '../components/Toast.jsx'
 import LoadState from '../components/LoadState.jsx'
 import { useGoBack } from '../components/BackButton.jsx'
 import GiveRewards from '../components/GiveRewards.jsx'
+import Doodle from '../components/Doodle.jsx'
 
 // Reached as /class/12 (a saved class) or /class/slot/5/2026-09-29 (a
 // weekly class that hasn't been saved yet).
@@ -45,10 +46,13 @@ export default function ClassDetail() {
       <LoadState {...result} />
       {result.data && (
         <>
-          <h1>
-            {session.group.name}
-            {!session.slot_id && <span className="badge">Extra</span>}
-          </h1>
+          <div className="doodle-wrap">
+            <h1>
+              {session.group.name}
+              {!session.slot_id && <span className="badge">Extra</span>}
+            </h1>
+            <Doodle />
+          </div>
           <p className="class-when">
             {formatDay(session.date)} · {formatTime(session.start_time)} · {session.duration_min} min
           </p>
@@ -139,7 +143,7 @@ function Attendance({ session, students, absentIds, makeups, reload, onSaved }) 
   const presentCount = everyone.length - absent.size
   return (
     <section className="section">
-      <p>
+      <p className="hint">
         Everyone is marked <strong>present</strong>. Tap the students who were <strong>absent</strong>.
       </p>
       <ul className="roster">

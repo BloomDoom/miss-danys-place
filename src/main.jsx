@@ -3,6 +3,9 @@ import { createRoot } from 'react-dom/client'
 import { HashRouter } from 'react-router-dom'
 import App from './App.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
+// The Nunito font files come from npm and are bundled with the app,
+// so the font works offline (Google Fonts would need internet).
+import '@fontsource-variable/nunito'
 import './index.css'
 import { watchTextSize } from './lib/bigText.js'
 

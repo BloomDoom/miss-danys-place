@@ -67,7 +67,8 @@ export default function Exams() {
           {groupByLevel(exams).map(([level, list]) => (
             <section key={level ?? 'none'} className="section">
               <h2>
-                {level ?? 'No level yet'} <span className="muted">· {list.length === 1 ? '1 student' : `${list.length} students`}</span>
+                {level ?? 'No level yet'}
+                <span className="count-chip">{list.length === 1 ? '1 student' : `${list.length} students`}</span>
               </h2>
               <ul className="card-list">
                 {list.map((exam) => (

@@ -23,8 +23,8 @@ export default defineConfig({
         orientation: 'portrait',
         start_url: base,
         scope: base,
-        background_color: '#faf8f4',
-        theme_color: '#faf8f4',
+        background_color: '#fbf3df',
+        theme_color: '#fbf3df',
         icons: [
           { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
@@ -35,7 +35,7 @@ export default defineConfig({
       workbox: {
         // Only the app itself is cached. Data from Supabase always comes
         // fresh from the internet, so she never sees old payment info.
-        globPatterns: ['**/*.{js,css,html,svg,png}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,webp,woff2}'],
       },
     }),
   ],

@@ -1,17 +1,38 @@
-/* ───────── Colors and sizes used everywhere. Change them here. */
+/* ───────── Colors and sizes used everywhere. Change them here.
+   The colors come from the Ms Dany's Place logo (cream background, teal
+   frame, peach flowers, yellow house), darkened wherever text sits on
+   them so everything stays easy to read (4.5:1 contrast or more). */
 :root {
-  --bg: #faf8f4;          /* warm off-white page background */
-  --surface: #ffffff;     /* cards */
-  --text: #1a1a1a;        /* near-black: high contrast */
-  --muted: #555555;       /* secondary text, still readable (7:1 contrast) */
-  --border: #d9d4ca;
-  --primary: #0e5c66;     /* dark teal: buttons, active tab */
+  --bg: #fbf3df;          /* warm cream page background (the logo's, a bit lighter) */
+  --surface: #fffdf7;     /* cards */
+  --text: #27363d;        /* dark blue-grey, like the logo lettering but darker */
+  --muted: #56656c;       /* secondary text (5.6:1 on cards) */
+  --border: #eadfc4;
+  --primary: #2e6f66;     /* the logo's teal frame, darkened: buttons, links, active tab */
   --primary-text: #ffffff;
-  --danger: #b3261e;      /* errors, unpaid */
+  --danger: #a3231b;      /* errors, overdue, absent */
+
+  /* Soft backgrounds + the dark text that goes on each */
+  --teal-soft: #e4f0ea;
+  --peach-soft: #fde6d3;  /* the logo's flowers: times, warnings, make-ups */
+  --peach: #e9a27f;
+  --peach-text: #8a3f12;
+  --yellow-soft: #fff4d2; /* the logo's house: birthdays */
+  --yellow: #f0cb6a;
+  --ok-soft: #e2f0dc;     /* present, paid */
+  --ok-text: #2c6534;
+  --bad-soft: #fbe1dc;    /* absent, overdue */
+  --track: #efe4c8;       /* empty part of progress bars */
+  --pressed: #f6eedb;     /* a card while it's being tapped */
+
+  /* Soft shadow instead of borders around cards */
+  --shadow: 0 1px 2px rgba(90, 70, 20, 0.07), 0 6px 18px rgba(90, 70, 20, 0.08);
+
   --tap: 48px;            /* minimum height of anything you can tap */
   --tab-bar-height: 64px;
   --home-raise: 24px;     /* how far the round Home button sticks up above the tab bar */
-  --radius: 12px;
+  --radius: 16px;         /* buttons and fields */
+  --radius-card: 20px;    /* cards */
 }
 
 /* ───────── Text size + iOS Dynamic Type
@@ -36,7 +57,10 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: -apple-system, system-ui, 'Segoe UI', Roboto, sans-serif;
+  /* Nunito: rounded, like the logo's lettering. It's bundled with the app
+     (see main.jsx), so it works offline. The size still comes from the
+     iPhone's text size setting (above). */
+  font-family: 'Nunito Variable', -apple-system, system-ui, 'Segoe UI', sans-serif;
   font-size: 1.0625rem; /* 18px at the default iPhone text size */
   line-height: 1.45;
   -webkit-text-size-adjust: 100%;
@@ -301,7 +325,7 @@ h2 {
 }
 
 .success {
-  color: #1b6e3a;
+  color: var(--ok-text);
   font-weight: 600;
 }
 
@@ -391,7 +415,7 @@ label.btn-secondary {
 }
 
 .card:active {
-  background: #f0ede6;
+  background: var(--pressed);
 }
 
 .card-title {
@@ -541,7 +565,7 @@ details summary {
   gap: 1rem;
   padding: 0.5rem 0.5rem 0.5rem 1rem;
   min-height: 56px;
-  background: #222;
+  background: var(--text);
   color: #fff;
   border-radius: var(--radius);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
@@ -630,7 +654,7 @@ button.back-link {
   font-weight: 600;
 }
 .status-done {
-  color: #1b6e3a;
+  color: var(--ok-text);
 }
 .status-cancelled {
   color: var(--danger);
@@ -651,7 +675,7 @@ button.back-link {
 .notice {
   padding: 1rem;
   border-radius: var(--radius);
-  background: #fdecea;
+  background: var(--bad-soft);
   color: var(--danger);
   font-weight: 700;
   text-align: center;
@@ -686,11 +710,11 @@ button.back-link {
 }
 .roster-status {
   flex-shrink: 0;
-  color: #1b6e3a;
+  color: var(--ok-text);
   font-weight: 600;
 }
 .roster-row.absent {
-  background: #fdecea;
+  background: var(--bad-soft);
   border-color: var(--danger);
 }
 .roster-row.absent .roster-status {
@@ -730,30 +754,18 @@ button.back-link {
 .progress {
   height: 12px;
   margin: 0.5rem 0;
-  background: #e9e4da;
+  background: var(--track);
   border-radius: 999px;
   overflow: hidden;
 }
 .progress div {
   height: 100%;
-  background: #1b6e3a;
+  background: var(--ok-text);
 }
 
 .charge-card {
   gap: 0.75rem;
 }
-/* A colored stripe on the left says the status at a glance */
-.charge-card.status-overdue {
-  border-left: 6px solid var(--danger);
-}
-.charge-card.status-unpaid,
-.charge-card.status-partial {
-  border-left: 6px solid #c77700;
-}
-.charge-card.status-paid {
-  border-left: 6px solid #1b6e3a;
-}
-
 .charge-top {
   display: flex;
   justify-content: space-between;
@@ -787,17 +799,17 @@ button.back-link {
   font-weight: 700;
 }
 .chip-overdue {
-  background: #fdecea;
+  background: var(--bad-soft);
   color: var(--danger);
 }
 .chip-unpaid,
 .chip-partial {
-  background: #fff1dc;
-  color: #8a5300;
+  background: var(--peach-soft);
+  color: var(--peach-text);
 }
 .chip-paid {
-  background: #e3f3e8;
-  color: #1b6e3a;
+  background: var(--ok-soft);
+  color: var(--ok-text);
 }
 
 .pay-panel {
@@ -861,15 +873,15 @@ button.back-link {
   min-height: 56px;
   margin: 0.75rem 0;
   padding: 0.75rem 1rem;
-  background: #e6f0f1;
+  background: var(--teal-soft);
   border: 2px solid var(--primary);
   border-radius: var(--radius);
   color: var(--text);
   text-decoration: none;
 }
 .makeup-banner.needs-action {
-  background: #fff1dc;
-  border-color: #c77700;
+  background: var(--peach-soft);
+  border-color: var(--peach);
 }
 .makeup-banner span:last-child {
   font-size: 1.6rem;
@@ -891,18 +903,6 @@ button.back-link {
 
 .makeup-card {
   gap: 0.5rem;
-}
-.makeup-card.makeup-check,
-.makeup-card.makeup-cancelled,
-.makeup-card.makeup-missed {
-  border-left: 6px solid #c77700;
-}
-.makeup-card.makeup-scheduled {
-  border-left: 6px solid var(--primary);
-}
-.makeup-card.makeup-done,
-.makeup-card.makeup-waived {
-  border-left: 6px solid var(--border);
 }
 .makeup-line {
   margin: 0;
@@ -1101,8 +1101,8 @@ h2 {
 }
 .birthday-card {
   gap: 0.5rem;
-  background: #fff8e6;
-  border: 2px solid #f2b84b;
+  background: var(--yellow-soft);
+  border: 2px solid var(--yellow);
 }
 .birthdays-soon {
   margin: 0.5rem 0;
@@ -1175,7 +1175,7 @@ h2 {
 .result-pass,
 .result-merit,
 .result-distinction {
-  color: #1b6e3a;
+  color: var(--ok-text);
 }
 
 /* The result as big buttons on the exam screen, 2 per row */
@@ -1200,10 +1200,10 @@ h2 {
 .result-option.selected {
   border-color: currentColor;
   border-width: 3px;
-  background: #f3f8f4;
+  background: var(--ok-soft);
 }
 .result-option.result-fail.selected {
-  background: #fdecea;
+  background: var(--bad-soft);
 }
 [data-big-text] .result-options {
   grid-template-columns: 1fr;
@@ -1253,7 +1253,7 @@ h2 {
 .emoji-choice.selected,
 .reward-chip.selected {
   border-color: var(--primary);
-  background: #e6f0f1;
+  background: var(--teal-soft);
   font-weight: 700;
 }
 .give-rewards summary {
@@ -1272,9 +1272,6 @@ h2 {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-}
-.attendance-row.has-absences {
-  border-left: 6px solid #c77700;
 }
 
 /* ‹ Title › rows (Home, Payments, Attendance): the title may shrink and wrap.
@@ -1298,4 +1295,344 @@ h2 {
 }
 .makeup-banner > span:last-child {
   flex-shrink: 0;
+}
+
+/* ───────── Visual design (logo-inspired)
+   Everything that looks like a card gets the same soft shape: no border,
+   rounded corners and a gentle shadow. */
+.card,
+.slot-box,
+.contact,
+.summary,
+.roster-row,
+.load-error,
+.attendance-line,
+.exam-card {
+  border: none;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow);
+  background: var(--surface);
+}
+.load-error {
+  box-shadow: inset 0 0 0 2px var(--danger), var(--shadow);
+}
+.card:active,
+.roster-row:active {
+  background: var(--pressed);
+}
+
+/* "Nothing here yet" boxes: soft and friendly, not a warning */
+.empty {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-card);
+  background: rgba(255, 253, 247, 0.6);
+}
+
+h1,
+h2 {
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.card-title {
+  font-weight: 800;
+}
+
+/* Labels (statuses, counts) are pills */
+.chip,
+.badge {
+  border-radius: 999px;
+  font-weight: 800;
+}
+
+/* Buttons: a little rounder and bolder */
+.btn-primary,
+.btn-secondary {
+  border-radius: var(--radius);
+  font-weight: 800;
+}
+.btn-secondary {
+  background: var(--surface);
+}
+
+/* Fields */
+input,
+select,
+textarea {
+  border-color: var(--border);
+  background: var(--surface);
+}
+
+/* ‹ › round arrow buttons: white circles with a soft shadow */
+.day-nav .btn-icon {
+  border: none;
+  background: var(--surface);
+  box-shadow: 0 1px 2px rgba(90, 70, 20, 0.1), 0 3px 8px rgba(90, 70, 20, 0.08);
+}
+
+/* Home: the class time is a peach label */
+.session-time {
+  align-self: flex-start;
+  min-width: 0;
+  padding: 0.15rem 0.7rem;
+  background: var(--peach-soft);
+  color: var(--peach-text);
+  border-radius: 999px;
+  font-size: 1.05rem;
+}
+.dimmed .session-time {
+  background: var(--track);
+  color: var(--muted);
+}
+
+/* Attendance list: Present / Absent are pills; an absent row turns soft red */
+.roster-status {
+  padding: 0.15rem 0.75rem;
+  background: var(--ok-soft);
+  color: var(--ok-text);
+  border-radius: 999px;
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+.roster-row {
+  border: none;
+}
+.roster-row.absent {
+  background: var(--bad-soft);
+  box-shadow: inset 0 0 0 2px var(--danger);
+}
+.roster-row.absent .roster-status {
+  background: var(--surface);
+  color: var(--danger);
+}
+.save-bar {
+  background: linear-gradient(rgba(251, 243, 223, 0), var(--bg) 35%);
+}
+
+/* The "Everyone is marked present" hint on the class screen */
+.hint {
+  padding: 0.75rem 1rem;
+  background: var(--teal-soft);
+  border-radius: var(--radius-card);
+}
+
+/* Payments: totals per method as teal pills */
+.method-totals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  border-top: none;
+}
+.method-totals li {
+  padding: 0.2rem 0.8rem;
+  background: var(--teal-soft);
+  color: #1f544d;
+  border-radius: 999px;
+  font-size: 0.95rem;
+}
+.progress {
+  height: 14px;
+}
+.progress div {
+  background: var(--primary);
+  border-radius: 999px;
+}
+
+/* Banners (Make-ups, Attendance): peach when something needs doing */
+.makeup-banner {
+  border: none;
+  border-radius: var(--radius-card);
+  background: var(--teal-soft);
+  box-shadow: var(--shadow);
+}
+.makeup-banner.needs-action {
+  background: var(--peach-soft);
+}
+
+/* Birthday card: the logo's yellow */
+.birthday-card {
+  border: none;
+  background: var(--yellow-soft);
+  box-shadow: inset 0 0 0 2px var(--yellow), var(--shadow);
+}
+
+/* Level count on the Exams list */
+.count-chip {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.05rem 0.7rem;
+  background: var(--peach-soft);
+  color: var(--peach-text);
+  border-radius: 999px;
+  font-size: 0.85em;
+  vertical-align: middle;
+}
+
+/* Tab bar: cream-white with a soft shadow; Home keeps its teal circle */
+.tab-bar {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -4px 16px rgba(90, 70, 20, 0.06);
+}
+.home-circle {
+  width: 64px;
+  height: 64px;
+  border: 5px solid var(--surface);
+  box-shadow: 0 4px 12px rgba(46, 111, 102, 0.35);
+}
+.tab-home.active .home-circle {
+  box-shadow: 0 0 0 3px var(--primary), 0 4px 12px rgba(46, 111, 102, 0.35);
+}
+
+/* Undo message */
+.toast {
+  border-radius: var(--radius-card);
+}
+
+/* Home header: the little round house from the logo next to the title */
+.home-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.home-header .house {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 3px solid #99c4b0; /* the logo's frame color (decorative) */
+}
+.home-header .title {
+  flex: 1;
+  min-width: 0;
+}
+.home-header h1 {
+  margin: 0;
+}
+.home-header p {
+  margin: 0;
+  font-weight: 700;
+}
+.home-arrows {
+  display: flex;
+  gap: 0.5rem;
+}
+/* With big text: the house and the arrows share the first row, and the
+   title gets the whole row below it, so a long day name never breaks. */
+[data-big-text] .home-header {
+  flex-wrap: wrap;
+}
+[data-big-text] .home-header .title {
+  order: 2;
+  flex-basis: 100%;
+}
+[data-big-text] .home-arrows {
+  order: 1;
+  flex: 1;
+  justify-content: flex-end;
+}
+/* Card titles grow like normal text (not faster), so names still fit */
+[data-big-text] .card-title {
+  font-size: 1.0625rem;
+}
+
+/* Flower doodle from the logo, in a few headers (decorative only) */
+.doodle-wrap {
+  position: relative;
+}
+.doodle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 30px;
+  height: 30px;
+  color: var(--peach);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+.doodle.green {
+  color: #9cb07d;
+}
+.doodle-wrap h1 {
+  padding-right: 2.25rem; /* room for the doodle */
+}
+
+/* Login: the full logo */
+.login-logo {
+  display: block;
+  width: min(72vw, 300px);
+  height: auto;
+  margin: 0 auto 1.5rem;
+  border-radius: 32px;
+  box-shadow: 0 10px 30px rgba(90, 70, 20, 0.18);
+}
+
+/* Call / WhatsApp buttons with their icons */
+.contact .btn-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.contact .btn-secondary svg,
+.icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* The Home screen's ‹ › buttons, same look as the other screens' arrows */
+.round-btn {
+  width: 52px;
+  height: 52px;
+  font-size: 2rem;
+  line-height: 1;
+  border: none;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 1px 2px rgba(90, 70, 20, 0.1), 0 3px 8px rgba(90, 70, 20, 0.08);
+  cursor: pointer;
+}
+[data-big-text] .round-btn {
+  font-size: 1.4rem; /* the ‹ › symbol stays inside its circle */
+}
+
+/* At the biggest text sizes, spacing measured in rem grows too (1rem =
+   50px+), eating the room words need. Cap the side padding of screens and
+   cards, and the title size, so long words like "Wednesday" still fit. */
+[data-big-text] .screen {
+  padding-left: min(1rem, 16px);
+  padding-right: min(1rem, 16px);
+}
+[data-big-text] .back-link,
+[data-big-text] .filters {
+  margin-left: calc(-1 * min(1rem, 16px));
+  margin-right: calc(-1 * min(1rem, 16px));
+  width: calc(100% + 2 * min(1rem, 16px));
+  padding-left: min(1rem, 16px);
+  padding-right: min(1rem, 16px);
+}
+[data-big-text] .card,
+[data-big-text] .slot-box,
+[data-big-text] .contact,
+[data-big-text] .summary,
+[data-big-text] .roster-row,
+[data-big-text] .hint,
+[data-big-text] .makeup-banner,
+[data-big-text] .attendance-line,
+[data-big-text] .empty {
+  padding-left: min(1rem, 16px);
+  padding-right: min(1rem, 16px);
+}
+[data-big-text] h1 {
+  font-size: min(1.2rem, 46px);
 }
