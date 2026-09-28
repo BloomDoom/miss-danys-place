@@ -9,6 +9,7 @@ import { saveErrorMessage } from '../lib/errors.js'
 import { useToast } from '../components/Toast.jsx'
 import LoadState from '../components/LoadState.jsx'
 import { useGoBack } from '../components/BackButton.jsx'
+import GiveRewards from '../components/GiveRewards.jsx'
 
 // Reached as /class/12 (a saved class) or /class/slot/5/2026-09-29 (a
 // weekly class that hasn't been saved yet).
@@ -23,6 +24,12 @@ async function loadClass(params) {
   ])
   const absentIds = new Set(absences.map((a) => a.student_id))
   return { session, absentIds, makeups, students: studentsOn(enrollments, session.date, absentIds) }
+}
+
+// This group's students plus make-up students from other groups.
+function everyoneIn({ students, makeups }) {
+  const ids = new Set(students.map((s) => s.id))
+  return [...students, ...makeups.map((m) => m.students).filter((s) => !ids.has(s.id))]
 }
 
 export default function ClassDetail() {
@@ -55,6 +62,7 @@ export default function ClassDetail() {
             // key: start the list fresh from the database whenever the class or its saved attendance changes
             <Attendance key={`${session.id}_${session.attendance_saved_at}`} {...result.data} reload={result.reload} onSaved={goBack} />
           )}
+          {!session.cancelled && <GiveRewards students={everyoneIn(result.data)} />}
           <ClassOptions session={session} reload={result.reload} />
         </>
       )}

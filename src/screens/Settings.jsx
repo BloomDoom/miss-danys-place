@@ -7,6 +7,7 @@ import { loadErrorMessage, saveErrorMessage } from '../lib/errors.js'
 import { buildBackupFiles, saveFiles } from '../lib/backup.js'
 import { useToast } from '../components/Toast.jsx'
 import LoadState from '../components/LoadState.jsx'
+import RewardTypes from '../components/RewardTypes.jsx'
 
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
@@ -22,6 +23,7 @@ export default function Settings() {
         <>
           <PaymentSettings settings={result.data} reload={result.reload} />
           <BirthdayMessage settings={result.data} reload={result.reload} />
+          <RewardTypes />
         </>
       )}
 

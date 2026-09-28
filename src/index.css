@@ -1232,3 +1232,60 @@ h2 {
   color: #1b6e3a;
   font-weight: 700;
 }
+
+/* ───────── Round 2: rewards */
+.reward-emoji {
+  font-size: 1.3em;
+}
+.reward-type-name {
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+.reward-count {
+  color: var(--primary);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.btn-give {
+  width: auto;
+  min-height: var(--tap);
+  padding: 0.25rem 1rem;
+  flex-shrink: 0;
+}
+
+/* Emoji quick picks and reward chips: big, wrapping buttons */
+.emoji-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.5rem 0 1rem;
+}
+.emoji-choice,
+.reward-chip {
+  min-width: var(--tap);
+  min-height: var(--tap);
+  padding: 0.25rem 0.75rem;
+  background: var(--bg);
+  border: 2px solid var(--border);
+  border-radius: 999px;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+.emoji-choice {
+  font-size: 1.5rem;
+}
+.emoji-choice.selected,
+.reward-chip.selected {
+  border-color: var(--primary);
+  background: #e6f0f1;
+  font-weight: 700;
+}
+.give-rewards summary {
+  font-size: 1.15rem;
+}
+[data-big-text] .btn-give {
+  width: 100%;
+}
+[data-big-text] .row-list li {
+  flex-wrap: wrap;
+}

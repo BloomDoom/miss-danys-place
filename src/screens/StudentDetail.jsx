@@ -12,6 +12,7 @@ import LoadState from '../components/LoadState.jsx'
 import StudentFields, { cleanStudent } from '../components/StudentFields.jsx'
 import StudentPayments from '../components/StudentPayments.jsx'
 import StudentAbsences from '../components/StudentAbsences.jsx'
+import StudentRewards from '../components/StudentRewards.jsx'
 import BackButton from '../components/BackButton.jsx'
 
 async function loadStudent(id) {
@@ -45,6 +46,7 @@ export default function StudentDetail() {
         ) : (
           <>
             <ViewStudent student={result.data.student} onEdit={() => setEditing(true)} reload={result.reload} />
+            <StudentRewards student={result.data.student} />
             <StudentPayments studentId={result.data.student.id} />
             <StudentAbsences studentId={result.data.student.id} />
           </>
