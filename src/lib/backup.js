@@ -16,10 +16,13 @@ async function fetchAll(table) {
   }
 }
 
-// Semicolons, because Excel in Spanish expects them. The "﻿" at the
-// start tells Excel the file is UTF-8, so accents (José) show correctly.
+// Semicolons, because Excel in Spanish expects them. The invisible
+// "\uFEFF" at the start tells Excel the file is UTF-8, so accents (José)
+// show correctly.
+const EXCEL_UTF8_MARK = '\uFEFF'
+
 function toCsv(rows) {
-  if (rows.length === 0) return '﻿'
+  if (rows.length === 0) return EXCEL_UTF8_MARK
   const columns = Object.keys(rows[0])
   const cell = (value) => {
     if (value === null || value === undefined) return ''
@@ -27,16 +30,16 @@ function toCsv(rows) {
     return /[";\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text
   }
   const lines = [columns.join(';'), ...rows.map((row) => columns.map((c) => cell(row[c])).join(';'))]
-  return '﻿' + lines.join('\r\n')
+  return EXCEL_UTF8_MARK + lines.join('\r\n')
 }
 
-// Returns an array of File objects: miss-danys-2026-09-28-students.csv, ...
+// Returns an array of File objects: ms-danys-2026-09-28-students.csv, ...
 export async function buildBackupFiles() {
   const date = todayISO()
   const files = []
   for (const table of TABLES) {
     const csv = toCsv(await fetchAll(table))
-    files.push(new File([csv], `miss-danys-${date}-${table}.csv`, { type: 'text/csv' }))
+    files.push(new File([csv], `ms-danys-${date}-${table}.csv`, { type: 'text/csv' }))
   }
   return files
 }
@@ -45,7 +48,7 @@ export async function buildBackupFiles() {
 // WhatsApp…). On a computer it downloads the files instead.
 export async function saveFiles(files) {
   if (navigator.canShare?.({ files })) {
-    await navigator.share({ files, title: "Miss Dany's Place backup" })
+    await navigator.share({ files, title: "Ms Dany's Place backup" })
     return
   }
   for (const file of files) {

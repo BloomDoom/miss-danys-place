@@ -1,4 +1,4 @@
--- Miss Dany's Place: database schema
+-- Ms Dany's Place: database schema
 -- Run this once in Supabase → SQL Editor → New query → paste → Run.
 --
 -- Conventions:

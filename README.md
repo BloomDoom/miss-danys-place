@@ -1,4 +1,4 @@
-# Miss Dany's Place
+# Ms Dany's Place
 
 Admin app for a one-teacher English school: classes, attendance, make-ups and
 monthly payments. Mobile-first PWA, made for an iPhone Home Screen.

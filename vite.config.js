@@ -16,8 +16,8 @@ export default defineConfig({
       registerType: 'autoUpdate', // new versions install themselves
       includeAssets: ['apple-touch-icon.png', 'favicon.png'],
       manifest: {
-        name: "Miss Dany's Place",
-        short_name: "Miss Dany's",
+        name: "Ms Dany's Place",
+        short_name: "Ms Dany's Place",
         description: 'Classes, attendance and payments',
         display: 'standalone',
         orientation: 'portrait',

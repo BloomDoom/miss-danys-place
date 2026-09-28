@@ -28,7 +28,7 @@ export default function Login() {
 
   return (
     <main className="screen login">
-      <h1>Miss Dany's Place</h1>
+      <h1>Ms Dany's Place</h1>
       <form onSubmit={handleSubmit}>
         <label>
           Email

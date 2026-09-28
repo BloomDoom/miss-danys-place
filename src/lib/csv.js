@@ -4,7 +4,7 @@
 // Handles quoted fields ("Pérez, Juan") and both separators: Google
 // Sheets uses commas, but Excel in Spanish uses semicolons.
 export function parseCsv(text) {
-  text = text.replace(/^﻿/, '') // invisible mark Excel adds at the start
+  text = text.replace(/^\uFEFF/, '') // invisible mark Excel adds at the start
   const firstLine = text.split(/\r?\n/, 1)[0]
   const count = (char) => firstLine.split(char).length - 1
   const separator = count(';') > count(',') ? ';' : ','
