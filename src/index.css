@@ -694,3 +694,129 @@ button.back-link {
 .slot-fields.two-equal label:first-child {
   grid-column: auto; /* both fields side by side */
 }
+
+/* ───────── Phase 4: payments */
+.day-nav .btn-icon:disabled {
+  opacity: 0.3;
+}
+
+.summary {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.summary p {
+  margin: 0.25rem 0;
+}
+
+/* Collected vs expected bar */
+.progress {
+  height: 12px;
+  margin: 0.5rem 0;
+  background: #e9e4da;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.progress div {
+  height: 100%;
+  background: #1b6e3a;
+}
+
+.charge-card {
+  gap: 0.75rem;
+}
+/* A colored stripe on the left says the status at a glance */
+.charge-card.status-overdue {
+  border-left: 6px solid var(--danger);
+}
+.charge-card.status-unpaid,
+.charge-card.status-partial {
+  border-left: 6px solid #c77700;
+}
+.charge-card.status-paid {
+  border-left: 6px solid #1b6e3a;
+}
+
+.charge-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+.charge-name {
+  display: flex;
+  flex-direction: column;
+  min-height: var(--tap);
+  justify-content: center;
+  color: var(--text);
+  text-decoration: none;
+}
+.charge-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+  text-align: right;
+  font-weight: 600;
+}
+.charge-note {
+  margin: 0;
+}
+
+.chip {
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+.chip-overdue {
+  background: #fdecea;
+  color: var(--danger);
+}
+.chip-unpaid,
+.chip-partial {
+  background: #fff1dc;
+  color: #8a5300;
+}
+.chip-paid {
+  background: #e3f3e8;
+  color: #1b6e3a;
+}
+
+.pay-panel {
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+}
+.pay-question {
+  margin: 0 0 0.5rem;
+  font-weight: 600;
+}
+.method-buttons {
+  display: grid;
+  gap: 0.5rem;
+}
+.btn-cancel {
+  width: 100%;
+  color: var(--muted);
+}
+
+.payment-lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.payment-lines li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.month-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 1rem;
+}

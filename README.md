@@ -28,6 +28,7 @@ public/                 icons (copied as-is)
 1. Create a free project at [supabase.com](https://supabase.com). Pick the
    São Paulo region (closest to Argentina).
 2. **SQL Editor → New query**: paste all of `supabase/schema.sql` and press **Run**.
+   Then do the same with `supabase/02-payments.sql` (the monthly fees function).
 3. **Authentication → Sign In / Providers**: turn **off** "Allow new users to sign up".
 4. **Authentication → Users → Add user → Create new user**: her email and a
    password, with "Auto Confirm User" ticked.

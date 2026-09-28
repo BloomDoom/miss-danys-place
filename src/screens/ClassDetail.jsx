@@ -7,6 +7,7 @@ import { ensureSaved, loadSession, sessionPath, studentsOn, updateSession } from
 import { saveErrorMessage } from '../lib/errors.js'
 import { useToast } from '../components/Toast.jsx'
 import LoadState from '../components/LoadState.jsx'
+import { useGoBack } from '../components/BackButton.jsx'
 
 // Reached as /class/12 (a saved class) or /class/slot/5/2026-09-29 (a
 // weekly class that hasn't been saved yet).
@@ -24,15 +25,8 @@ export default function ClassDetail() {
   const { id, slotId, date } = useParams()
   const result = useLoad(() => loadClass({ id, slotId, date }), [id, slotId, date])
   const session = result.data?.session
-  const navigate = useNavigate()
-
-  // She can arrive from Today or from a group, so "Back" returns to the
-  // previous screen. React Router numbers the history entries (idx); 0
-  // means the app was opened straight on this screen, so go to Today.
-  function goBack() {
-    if (window.history.state?.idx > 0) navigate(-1)
-    else navigate(session ? `/?date=${session.date}` : '/')
-  }
+  // She can arrive from Today or from a group, so "Back" returns to the previous screen.
+  const goBack = useGoBack(session ? `/?date=${session.date}` : '/')
 
   return (
     <main className="screen">

@@ -9,6 +9,8 @@ import { saveErrorMessage } from '../lib/errors.js'
 import { useToast } from '../components/Toast.jsx'
 import LoadState from '../components/LoadState.jsx'
 import StudentFields, { cleanStudent } from '../components/StudentFields.jsx'
+import StudentPayments from '../components/StudentPayments.jsx'
+import BackButton from '../components/BackButton.jsx'
 
 async function loadStudent(id) {
   const [student, groups] = await Promise.all([
@@ -25,7 +27,7 @@ export default function StudentDetail() {
 
   return (
     <main className="screen">
-      <Link to="/students" className="back-link">‹ Students</Link>
+      <BackButton fallback="/students" />
       <LoadState {...result} />
       {result.data &&
         (editing ? (
@@ -37,7 +39,10 @@ export default function StudentDetail() {
             }}
           />
         ) : (
-          <ViewStudent student={result.data.student} onEdit={() => setEditing(true)} reload={result.reload} />
+          <>
+            <ViewStudent student={result.data.student} onEdit={() => setEditing(true)} reload={result.reload} />
+            <StudentPayments studentId={result.data.student.id} />
+          </>
         ))}
     </main>
   )
