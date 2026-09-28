@@ -1,6 +1,26 @@
 import { Link } from 'react-router-dom'
+import { supabase } from '../lib/supabase.js'
+import { unwrap, useLoad } from '../lib/useLoad.js'
+import { formatMoney } from '../lib/format.js'
+import { currentEnrollments, priceForMonth, slotsSummary } from '../lib/groups.js'
+import LoadState from '../components/LoadState.jsx'
+
+function loadGroups() {
+  return unwrap(
+    supabase
+      .from('groups')
+      .select('*, group_slots(*), group_prices(*), enrollments(end_date, students(active))')
+      .order('name'),
+  )
+}
 
 export default function Groups() {
+  const result = useLoad(loadGroups, [])
+  const groups = result.data
+
+  const active = groups?.filter((g) => g.active) ?? []
+  const inactive = groups?.filter((g) => !g.active) ?? []
+
   return (
     <main className="screen">
       <header className="screen-header">
@@ -13,7 +33,54 @@ export default function Groups() {
           </svg>
         </Link>
       </header>
-      <p className="empty">Your groups and their class times will show up here.</p>
+
+      <LoadState {...result} />
+
+      {groups && (
+        <>
+          {active.length === 0 ? (
+            <p className="empty">No groups yet. Tap “Add group” to create your first class.</p>
+          ) : (
+            <GroupList groups={active} />
+          )}
+
+          <Link to="/groups/new" className="btn-primary">+ Add group</Link>
+
+          {inactive.length > 0 && (
+            <details className="section">
+              <summary>Inactive groups ({inactive.length})</summary>
+              <GroupList groups={inactive} />
+            </details>
+          )}
+        </>
+      )}
     </main>
+  )
+}
+
+function GroupList({ groups }) {
+  return (
+    <ul className="card-list">
+      {groups.map((group) => {
+        const price = priceForMonth(group.group_prices)
+        const studentCount = currentEnrollments(group.enrollments).filter((e) => e.students.active).length
+        return (
+          <li key={group.id}>
+            <Link to={`/groups/${group.id}`} className="card">
+              <span className="card-title">
+                {group.name}
+                {group.level && <span className="muted"> · {group.level}</span>}
+              </span>
+              <span>{slotsSummary(group.group_slots)}</span>
+              <span className="muted">
+                {price ? `${formatMoney(price.amount)} a month` : 'No price yet'}
+                {' · '}
+                {studentCount === 1 ? '1 student' : `${studentCount} students`}
+              </span>
+            </Link>
+          </li>
+        )
+      })}
+    </ul>
   )
 }

@@ -56,6 +56,20 @@ Open the site in **Safari** → Share button → **Add to Home Screen**. Open th
 app from the new icon and log in once. The Home Screen app keeps its own login,
 separate from Safari.
 
+## Loading data from the paper sheets
+Groups → gear → **Import from a spreadsheet**. Import groups first, then
+students. Commas or semicolons both work (Excel in Spanish uses `;`).
+
+```
+name,level,schedule,price,notes
+Kids A1,Beginners,Tue 17:00 60 / Thu 17:00 60,25000,
+
+name,group,phone,parent_name,parent_phone,start_date,notes
+Sofía Pérez,Kids A1,,Laura Pérez,11 5555-1234,01/03/2026,
+```
+Rows with problems are shown before anything is saved. Names that already
+exist are skipped, so importing the same file twice is safe.
+
 ## Good to know
 - **Keep-alive:** Supabase pauses free projects after 7 days without use.
   `keep-alive.yml` pings it every 3 days. GitHub turns off scheduled workflows

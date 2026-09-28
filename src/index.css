@@ -254,3 +254,295 @@ textarea:focus {
 .tab.active {
   color: var(--primary);
 }
+
+/* ───────── Phase 2: lists, cards, forms */
+h2 {
+  font-size: 1.3rem;
+  margin: 0 0 0.75rem;
+}
+
+.section {
+  margin-top: 2rem;
+}
+
+.optional {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.success {
+  color: #1b6e3a;
+  font-weight: 600;
+}
+
+.badge {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  background: var(--border);
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+a {
+  color: var(--primary);
+}
+
+/* Links that look like buttons */
+a.btn-primary,
+a.btn-secondary,
+label.btn-secondary {
+  text-align: center;
+  text-decoration: none;
+  line-height: 1.6;
+}
+
+/* Space between buttons stacked on top of each other */
+.btn-primary + .btn-primary,
+.btn-secondary + .btn-secondary,
+.btn-primary + .btn-secondary,
+.btn-secondary + .btn-primary,
+.card-list + .btn-primary,
+.empty + .btn-primary,
+.empty + .btn-secondary,
+.row-list + .btn-secondary,
+.row-list + .btn-primary,
+.stack > * + * {
+  margin-top: 0.75rem;
+}
+
+/* Two buttons side by side */
+.btn-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+.btn-row > * {
+  flex: 1;
+  margin-top: 0 !important;
+}
+
+/* A text-only button (e.g. "Remove") that is still easy to tap */
+.btn-text {
+  min-height: var(--tap);
+  min-width: var(--tap);
+  padding: 0 0.5rem;
+  background: none;
+  border: none;
+  color: var(--danger);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Tappable cards (groups, students) */
+.card-list {
+  list-style: none;
+  margin: 1rem 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-height: var(--tap);
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.card:active {
+  background: #f0ede6;
+}
+
+.card-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+/* Simple rows: "Tuesday 18:00 ... Remove" */
+.row-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.row-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: var(--tap);
+  padding: 0.25rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.row-link {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  min-height: var(--tap);
+  color: var(--text);
+  text-decoration: none;
+}
+
+/* A boxed area for small forms (add class time, change price) */
+.slot-box {
+  margin: 0.75rem 0;
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.slot-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 0.75rem;
+}
+.slot-fields label:first-child {
+  grid-column: 1 / -1; /* the day takes the full width */
+}
+
+.big-number {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+}
+.big-number .muted {
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+/* Search box + group filter on Students */
+.filters {
+  margin-top: 1rem;
+}
+.filters input,
+.filters select {
+  margin-top: 0.5rem;
+}
+
+.contact {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.contact p {
+  margin: 0;
+}
+
+.notes {
+  white-space: pre-wrap; /* keep her line breaks */
+}
+
+fieldset {
+  margin: 0 0 1rem;
+  padding: 0;
+  border: none;
+}
+legend {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: var(--tap);
+  margin: 0;
+  font-weight: 400;
+}
+.checkbox-row input {
+  width: 26px;
+  min-height: 26px;
+  height: 26px;
+  margin: 0;
+  accent-color: var(--primary);
+}
+
+details summary {
+  min-height: var(--tap);
+  display: flex;
+  align-items: center;
+  color: var(--primary);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.load-error {
+  padding: 1rem;
+  border: 2px solid var(--danger);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.load-error p {
+  margin-top: 0;
+  color: var(--danger);
+  font-weight: 600;
+}
+
+/* Undo / confirmation message, just above the tab bar */
+.toast {
+  position: fixed;
+  left: 1rem;
+  right: 1rem;
+  bottom: calc(var(--tab-bar-height) + env(safe-area-inset-bottom) + 0.75rem);
+  z-index: 30;
+  max-width: 38rem;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 0.5rem 0.5rem 1rem;
+  min-height: 56px;
+  background: #222;
+  color: #fff;
+  border-radius: var(--radius);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+.toast button {
+  min-height: var(--tap);
+  padding: 0 1rem;
+  background: none;
+  border: 2px solid #fff;
+  border-radius: 8px;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Import screen */
+.example {
+  overflow-x: auto;
+  padding: 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.8rem;
+}
+
+.file-button {
+  display: block;
+  margin-top: 1rem;
+}
+.file-button input {
+  display: none; /* the whole label is the button */
+}
+
+.import-list .has-problem strong {
+  color: var(--danger);
+}

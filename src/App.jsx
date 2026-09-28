@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { isConfigured, supabase } from './lib/supabase.js'
 import { useOnline } from './lib/useOnline.js'
 import Login from './screens/Login.jsx'
@@ -7,13 +7,23 @@ import Today from './screens/Today.jsx'
 import Payments from './screens/Payments.jsx'
 import Students from './screens/Students.jsx'
 import Groups from './screens/Groups.jsx'
+import GroupNew from './screens/GroupNew.jsx'
+import GroupDetail from './screens/GroupDetail.jsx'
+import StudentNew from './screens/StudentNew.jsx'
+import StudentDetail from './screens/StudentDetail.jsx'
 import Settings from './screens/Settings.jsx'
+import Import from './screens/Import.jsx'
 import TabBar from './components/TabBar.jsx'
+import { ToastProvider } from './components/Toast.jsx'
 
 export default function App() {
   // undefined = still checking, null = logged out, object = logged in
   const [session, setSession] = useState(undefined)
   const online = useOnline()
+  const { pathname } = useLocation()
+
+  // Start every new screen at the top (the browser would keep the old scroll position).
+  useEffect(() => window.scrollTo(0, 0), [pathname])
 
   useEffect(() => {
     if (!isConfigured) return
@@ -47,17 +57,22 @@ export default function App() {
       {session === null ? (
         <Login />
       ) : (
-        <>
+        <ToastProvider>
           <Routes>
             <Route path="/" element={<Today />} />
             <Route path="/payments" element={<Payments />} />
             <Route path="/students" element={<Students />} />
+            <Route path="/students/new" element={<StudentNew />} />
+            <Route path="/students/:id" element={<StudentDetail />} />
             <Route path="/groups" element={<Groups />} />
+            <Route path="/groups/new" element={<GroupNew />} />
+            <Route path="/groups/:id" element={<GroupDetail />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/settings/import" element={<Import />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
           <TabBar />
-        </>
+        </ToastProvider>
       )}
     </>
   )
