@@ -81,7 +81,7 @@ function ViewStudent({ student, onEdit, reload }) {
         {!student.active && <span className="badge">Inactive</span>}
       </h1>
 
-      <p>
+      <p className="group-links">
         {groups.length === 0
           ? 'Not in a group'
           : groups.map((g, i) => (

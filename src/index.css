@@ -249,7 +249,7 @@ textarea:focus {
   justify-content: center;
   gap: 2px;
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   font-weight: 600;
   text-decoration: none;
 }
@@ -902,4 +902,35 @@ button.back-link {
 }
 .picker-option:active {
   border-color: var(--primary);
+}
+
+/* ───────── Phase 6: accessibility */
+/* A clear outline when moving around with a keyboard (or iOS Full Keyboard Access) */
+:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none; /* these already get a teal border */
+}
+
+/* Links inside text (e.g. a student's groups) get a comfortable tap area */
+.group-links a {
+  display: inline-block;
+  min-height: var(--tap);
+  line-height: var(--tap);
+  font-weight: 600;
+}
+
+/* Respect "Bold Text"-style contrast needs: never go lighter than this */
+@media (prefers-contrast: more) {
+  :root {
+    --muted: #333333;
+    --border: #8a8478;
+  }
+  .dimmed {
+    opacity: 0.8;
+  }
 }

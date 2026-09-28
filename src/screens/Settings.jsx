@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase.js'
 import { unwrap, useLoad } from '../lib/useLoad.js'
 import { loadSettings } from '../lib/payments.js'
-import { saveErrorMessage } from '../lib/errors.js'
+import { loadErrorMessage, saveErrorMessage } from '../lib/errors.js'
+import { buildBackupFiles, saveFiles } from '../lib/backup.js'
 import { useToast } from '../components/Toast.jsx'
 import LoadState from '../components/LoadState.jsx'
 
@@ -18,6 +19,8 @@ export default function Settings() {
       <h1>Settings</h1>
       <LoadState {...result} />
       {result.data && <PaymentSettings settings={result.data} reload={result.reload} />}
+
+      <Backup />
 
       <section className="section">
         <h2>Loading data</h2>
@@ -37,6 +40,60 @@ export default function Settings() {
         </button>
       </section>
     </main>
+  )
+}
+
+// Two steps because of an iPhone rule: the Share sheet only opens right
+// after a tap, and reading all the data takes a few seconds. So: tap 1
+// reads the data, tap 2 opens the Share sheet.
+function Backup() {
+  const [files, setFiles] = useState(null)
+  const [busy, setBusy] = useState(false)
+  const [message, setMessage] = useState('')
+  const [error, setError] = useState('')
+
+  async function prepare() {
+    setError('')
+    setMessage('')
+    setBusy(true)
+    try {
+      setFiles(await buildBackupFiles())
+    } catch (err) {
+      setError(loadErrorMessage(err))
+    }
+    setBusy(false)
+  }
+
+  async function save() {
+    setError('')
+    try {
+      await saveFiles(files)
+      setFiles(null)
+      setMessage('Backup done ✓')
+    } catch (err) {
+      if (err.name === 'AbortError') return // she closed the Share sheet
+      console.error(err)
+      setError("The backup files couldn't be saved. Try again.")
+    }
+  }
+
+  return (
+    <section className="section">
+      <h2>Backup</h2>
+      <p className="muted">
+        Saves a copy of everything (students, classes, payments) as spreadsheet files. Do it once a month and keep
+        the files somewhere safe, like Google Drive or your email.
+      </p>
+      {files ? (
+        <button className="btn-primary" onClick={save}>Save backup files</button>
+      ) : (
+        <button className="btn-secondary" onClick={prepare} disabled={busy}>
+          {busy ? 'Preparing…' : 'Make a backup'}
+        </button>
+      )}
+      {message && <p className="success" role="status">{message}</p>}
+      {error && <p className="error" role="alert">{error}</p>}
+    </section>
   )
 }
 

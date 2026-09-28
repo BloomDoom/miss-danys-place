@@ -8,19 +8,38 @@ monthly payments. Mobile-first PWA, made for an iPhone Home Screen.
 ## Project structure
 
 ```
-index.html              iPhone/PWA meta tags
-vite.config.js          build settings + PWA manifest and service worker
-supabase/schema.sql     all database tables and security rules
+index.html                  iPhone/PWA meta tags
+vite.config.js              build settings + PWA manifest and service worker
+supabase/
+  schema.sql                all tables and security rules (run first)
+  02-payments.sql           monthly fees function (run second)
+  reset-test-data.sql       ⚠️ erases all data (only before loading real data)
 src/
-  main.jsx              starts React and the router
-  App.jsx               login check, routes, offline banner
-  index.css             all styles (colors/sizes at the top)
-  lib/                  supabase client, helpers
-  components/           reusable pieces (tab bar, ...)
-  screens/              one file per screen
-public/                 icons (copied as-is)
-.github/workflows/      deploy to GitHub Pages + keep Supabase awake
+  main.jsx                  starts React, the router and the crash screen
+  App.jsx                   login check, routes, offline banner
+  index.css                 all styles (colors/sizes at the top)
+  lib/
+    sessions.js             which classes happen on which day (the core logic)
+    payments.js             fee statuses: paid / partial / unpaid / overdue
+    makeups.js              make-up statuses
+    format.js               dates, months, money (Argentine format)
+    useLoad.js              loading data in a screen (+ unwrap)
+    backup.js, csv.js       CSV export and import
+    phone.js, groups.js, errors.js, supabase.js, useOnline.js
+  components/               reusable pieces (tab bar, toast, pay panel, ...)
+  screens/                  one file per screen
+public/                     icons (copied as-is)
+.github/workflows/          deploy to GitHub Pages + keep Supabase awake
 ```
+
+**How classes work:** weekly classes are never stored in advance. For each
+day the app calculates them from `group_slots`, and mixes in rows from
+`sessions` for classes that were cancelled, moved, had attendance saved, or
+are extras (see `src/lib/sessions.js`).
+
+**How fees work:** when the Payments screen opens a month, `ensure_charges`
+creates one fee per student per group, copying the price of that month.
+Changing a price only updates fees with no payments and no hand edit.
 
 ## One-time setup
 
@@ -58,7 +77,10 @@ app from the new icon and log in once. The Home Screen app keeps its own login,
 separate from Safari.
 
 ## Loading data from the paper sheets
-Groups → gear → **Import from a spreadsheet**. Import groups first, then
+First, erase the test data: paste `supabase/reset-test-data.sql` in the SQL
+Editor and run it (this can't be undone).
+
+Then Groups → gear → **Import from a spreadsheet**. Import groups first, then
 students. Commas or semicolons both work (Excel in Spanish uses `;`).
 
 ```
@@ -76,7 +98,10 @@ exist are skipped, so importing the same file twice is safe.
   `keep-alive.yml` pings it every 3 days. GitHub turns off scheduled workflows
   in repos with no commits for 60 days and emails you first. If that happens,
   re-enable it in the Actions tab.
-- **Backups:** the free plan has no automatic backups. Use the CSV export in
-  Settings regularly.
+- **Backups:** the free plan has no automatic backups. Settings → **Make a
+  backup** → **Save backup files** exports every table as CSV (on the iPhone
+  it opens the Share sheet: save to Files/Drive or email it). Do it monthly.
+- **Nothing is ever deleted** by the app: payments, fees and absences get a
+  `deleted_at` date instead, and the database doesn't even allow deleting them.
 - **Updates:** after a deploy, the phone picks up the new version the next time
   the app is opened (sometimes it takes a second open).
