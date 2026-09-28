@@ -4,6 +4,8 @@ import { isConfigured, supabase } from './lib/supabase.js'
 import { useOnline } from './lib/useOnline.js'
 import Login from './screens/Login.jsx'
 import Today from './screens/Today.jsx'
+import ClassDetail from './screens/ClassDetail.jsx'
+import ClassNew from './screens/ClassNew.jsx'
 import Payments from './screens/Payments.jsx'
 import Students from './screens/Students.jsx'
 import Groups from './screens/Groups.jsx'
@@ -60,6 +62,9 @@ export default function App() {
         <ToastProvider>
           <Routes>
             <Route path="/" element={<Today />} />
+            <Route path="/class/new" element={<ClassNew />} />
+            <Route path="/class/:id" element={<ClassDetail />} />
+            <Route path="/class/slot/:slotId/:date" element={<ClassDetail />} />
             <Route path="/payments" element={<Payments />} />
             <Route path="/students" element={<Students />} />
             <Route path="/students/new" element={<StudentNew />} />

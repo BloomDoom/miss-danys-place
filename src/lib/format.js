@@ -39,11 +39,39 @@ export function formatMonth(iso) {
   return new Date(y, m - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
 }
 
+// A JavaScript Date (local, no time zone math) → "2026-09-28"
+function toISO(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+}
+
 // addMonths("2026-11-01", 2) → "2027-01-01"
 export function addMonths(monthIso, n) {
   const [y, m] = monthIso.split('-').map(Number)
-  const date = new Date(y, m - 1 + n, 1)
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-01`
+  return toISO(new Date(y, m - 1 + n, 1))
+}
+
+// addDays("2026-09-30", 1) → "2026-10-01"
+export function addDays(iso, n) {
+  const [y, m, d] = iso.split('-').map(Number)
+  return toISO(new Date(y, m - 1, d + n))
+}
+
+// Every date from `from` to `to`, both included.
+export function datesBetween(from, to) {
+  const dates = []
+  for (let date = from; date <= to; date = addDays(date, 1)) dates.push(date)
+  return dates
+}
+
+// "2026-09-29" → 2 (Tuesday). 1 = Monday ... 7 = Sunday, like the database.
+export function isoWeekday(iso) {
+  const [y, m, d] = iso.split('-').map(Number)
+  return new Date(y, m - 1, d).getDay() || 7 // getDay() says 0 for Sunday
+}
+
+// "2026-09-29" → "Tuesday 29/09"
+export function formatDay(iso) {
+  return `${weekdayName(isoWeekday(iso))} ${formatDate(iso).slice(0, 5)}`
 }
 
 // 25000 → "$ 25.000"

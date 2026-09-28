@@ -2,7 +2,10 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase.js'
 import { unwrap, useLoad } from '../lib/useLoad.js'
-import { addMonths, currentMonthISO, formatDuration, formatMoney, formatMonth, formatTime, parseAmount, weekdayName } from '../lib/format.js'
+import {
+  addDays, addMonths, currentMonthISO, formatDay, formatDuration, formatMoney, formatMonth, formatTime, parseAmount, todayISO, weekdayName,
+} from '../lib/format.js'
+import { loadSessions, sessionPath } from '../lib/sessions.js'
 import { activeSlots, currentEnrollments, priceForMonth } from '../lib/groups.js'
 import { saveErrorMessage } from '../lib/errors.js'
 import { useToast } from '../components/Toast.jsx'
@@ -35,6 +38,7 @@ export default function GroupDetail() {
             {!group.active && <span className="badge">Inactive</span>}
           </h1>
           <ClassTimes group={group} reload={result.reload} />
+          {group.active && <NextClasses group={group} />}
           <Price group={group} reload={result.reload} />
           <Students group={group} />
           <Details group={group} reload={result.reload} />
@@ -120,6 +124,38 @@ function ClassTimes({ group, reload }) {
         <button className="btn-secondary" onClick={() => setAdding(true)}>+ Add a class time</button>
       )}
       {error && <p className="error" role="alert">{error}</p>}
+    </section>
+  )
+}
+
+// The group's classes for the next 3 weeks. Tap one to cancel or move it
+// (e.g. for a holiday), without changing the weekly schedule.
+function NextClasses({ group }) {
+  const today = todayISO()
+  // group_slots is a dependency so the list updates after adding/removing a time.
+  const result = useLoad(() => loadSessions(today, addDays(today, 20), group.id), [group.id, group.group_slots])
+  const sessions = result.data?.filter((s) => !s.movedAway)
+
+  return (
+    <section className="section">
+      <h2>Next classes</h2>
+      <LoadState {...result} />
+      {sessions && sessions.length === 0 && <p className="empty">No classes in the next 3 weeks.</p>}
+      {sessions && (
+        <ul className="row-list">
+          {sessions.map((s) => (
+            <li key={`${s.id ?? 'slot' + s.slot_id}_${s.date}`}>
+              <Link to={sessionPath(s)} className={`row-link ${s.cancelled ? 'dimmed' : ''}`}>
+                {formatDay(s.date)} · {formatTime(s.start_time)}
+                {s.cancelled && ' · Cancelled'}
+                {!s.slot_id && ' · Extra'}
+                {s.original_date && s.original_date !== s.date && ' · Moved'}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+      <Link to={`/class/new?group=${group.id}`} className="btn-secondary">+ Add extra class</Link>
     </section>
   )
 }
