@@ -1035,3 +1035,61 @@ h2 {
   font-size: min(1rem, 24px);
   flex-wrap: wrap;
 }
+
+/* ───────── Round 2: students list, contacts */
+/* Search + "+ Add" pinned at the top of the Students list */
+.filters {
+  position: sticky;
+  top: env(safe-area-inset-top);
+  z-index: 12;
+  margin: 1rem -1rem 0;
+  padding: 0.5rem 1rem;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+.filters-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.filters-row input {
+  flex: 1;
+  min-width: 0;
+  margin-top: 0;
+}
+.btn-add {
+  width: auto !important;
+  flex-shrink: 0;
+  min-height: var(--tap) !important;
+  padding: 0 1rem !important;
+  display: flex !important;
+  align-items: center;
+}
+
+/* A, B, C… headers in the students list */
+.letter-header {
+  margin: 1.25rem 0 -0.5rem;
+  color: var(--primary);
+  font-size: 1.2rem;
+}
+
+.contacts-editor .slot-box {
+  margin-top: 0.5rem;
+}
+.more-details {
+  margin-bottom: 1rem;
+}
+
+/* With big text the pinned bar would cover the list: let it scroll away,
+   and stack search and "+ Add". */
+[data-big-text] .filters {
+  position: static;
+}
+[data-big-text] .filters-row {
+  flex-direction: column;
+  align-items: stretch;
+}
+[data-big-text] .btn-add {
+  width: 100% !important;
+  justify-content: center;
+}

@@ -5,6 +5,7 @@ import { unwrap, useLoad } from '../lib/useLoad.js'
 import { formatDate, todayISO } from '../lib/format.js'
 import { currentEnrollments } from '../lib/groups.js'
 import { callLink, whatsappLink } from '../lib/phone.js'
+import { EMPTY_CONTACT, ageOn, hasPhone, saveContacts, sortedContacts } from '../lib/students.js'
 import { saveErrorMessage } from '../lib/errors.js'
 import { useToast } from '../components/Toast.jsx'
 import LoadState from '../components/LoadState.jsx'
@@ -15,7 +16,9 @@ import BackButton from '../components/BackButton.jsx'
 
 async function loadStudent(id) {
   const [student, groups] = await Promise.all([
-    unwrap(supabase.from('students').select('*, enrollments(id, group_id, end_date, groups(id, name))').eq('id', id).single()),
+    unwrap(
+      supabase.from('students').select('*, student_contacts(*), enrollments(id, group_id, end_date, groups(id, name))').eq('id', id).single(),
+    ),
     unwrap(supabase.from('groups').select('id, name').eq('active', true).order('name')),
   ])
   return { student, groups }
@@ -54,6 +57,8 @@ function ViewStudent({ student, onEdit, reload }) {
   const showToast = useToast()
   const [error, setError] = useState('')
   const groups = currentEnrollments(student.enrollments).map((e) => e.groups)
+  const contacts = sortedContacts(student)
+  const age = ageOn(student.birth_date)
 
   async function setActive(active) {
     setError('')
@@ -92,9 +97,18 @@ function ViewStudent({ student, onEdit, reload }) {
             ))}
       </p>
 
-      {student.phone && <Contact label="Phone" phone={student.phone} />}
-      {(student.guardian_name || student.guardian_phone) && (
-        <Contact label={`Parent${student.guardian_name ? ': ' + student.guardian_name : ''}`} phone={student.guardian_phone} />
+      {(age !== null || student.school) && (
+        <p>
+          {age !== null && `${age} years old (born ${formatDate(student.birth_date)})`}
+          {age !== null && student.school && ' · '}
+          {student.school}
+        </p>
+      )}
+
+      {contacts.length === 0 ? (
+        <p className="empty">No contacts yet. Tap “Edit details” to add a phone number.</p>
+      ) : (
+        contacts.map((c) => <Contact key={c.id} label={c.name} phone={c.phone} />)
       )}
 
       {student.notes && (
@@ -139,12 +153,15 @@ function Contact({ label, phone }) {
 function EditStudent({ student, groups, onDone }) {
   const [values, setValues] = useState({
     name: student.name,
-    phone: student.phone,
-    guardian_name: student.guardian_name,
-    guardian_phone: student.guardian_phone,
+    birth_date: student.birth_date,
+    school: student.school,
     notes: student.notes,
     start_date: student.start_date,
   })
+  const oldContacts = sortedContacts(student)
+  const [contacts, setContacts] = useState(
+    oldContacts.length > 0 ? oldContacts.map((c) => ({ name: c.name, phone: c.phone || '' })) : [EMPTY_CONTACT],
+  )
   const current = currentEnrollments(student.enrollments)
   const [groupIds, setGroupIds] = useState(current.map((e) => e.group_id))
   const [error, setError] = useState('')
@@ -156,9 +173,12 @@ function EditStudent({ student, groups, onDone }) {
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
+    if (!hasPhone(contacts)) return setError('Add at least one contact with a phone number.')
     setBusy(true)
     try {
-      await unwrap(supabase.from('students').update(cleanStudent(values)).eq('id', student.id))
+      const clean = cleanStudent(values)
+      await unwrap(supabase.from('students').update(clean).eq('id', student.id))
+      await saveContacts(student.id, clean.name, contacts, oldContacts.map((c) => c.id))
 
       // Groups she unticked: end the enrollment today (keeps the history).
       const removed = current.filter((e) => !groupIds.includes(e.group_id)).map((e) => e.id)
@@ -182,7 +202,7 @@ function EditStudent({ student, groups, onDone }) {
   return (
     <form onSubmit={handleSubmit}>
       <h1>Edit {student.name}</h1>
-      <StudentFields values={values} onChange={setValues} />
+      <StudentFields values={values} onChange={setValues} contacts={contacts} onContactsChange={setContacts} />
 
       <fieldset>
         <legend>Groups</legend>

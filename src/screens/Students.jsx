@@ -17,6 +17,17 @@ async function loadStudents() {
   return { students, groups, pending }
 }
 
+// [['A', [Ana, Andrés]], ['B', [Beto]], ...]. Accents don't matter (Á → A).
+function byLetter(students) {
+  const groups = new Map()
+  for (const s of students) {
+    const letter = normalize(s.name).charAt(0).toUpperCase() || '#'
+    if (!groups.has(letter)) groups.set(letter, [])
+    groups.get(letter).push(s)
+  }
+  return [...groups.entries()]
+}
+
 export default function Students() {
   const result = useLoad(loadStudents, [])
   const [search, setSearch] = useState('')
@@ -42,18 +53,21 @@ export default function Students() {
       {result.data && (
         <>
           <MakeupBanner pending={result.data.pending} />
-          <Link to="/students/new" className="btn-primary">+ Add students</Link>
 
+          {/* Pinned at the top while scrolling, so search and "+ Add" are always at hand */}
           <div className="filters">
-            <input
-              type="search"
-              placeholder="Search by name"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              aria-label="Search by name"
-            />
+            <div className="filters-row">
+              <input
+                type="search"
+                placeholder="Search by name"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                aria-label="Search by name"
+              />
+              <Link to="/students/new" className="btn-primary btn-add" aria-label="Add students">+ Add</Link>
+            </div>
             <select value={filter} onChange={(e) => setFilter(e.target.value)} aria-label="Which students">
-              <option value="active">All students</option>
+              <option value="active">All students ({result.data.students.filter((s) => s.active).length})</option>
               {result.data.groups.map((g) => (
                 <option key={g.id} value={g.id}>{g.name}</option>
               ))}
@@ -62,22 +76,28 @@ export default function Students() {
           </div>
 
           {result.data.students.length === 0 ? (
-            <p className="empty">No students yet. Tap “Add students” to add your first ones.</p>
+            <p className="empty">No students yet. Tap “+ Add” to add your first ones.</p>
           ) : students.length === 0 ? (
             <p className="empty">No students match. Try another name or group.</p>
           ) : (
-            <ul className="card-list">
-              {students.map((s) => (
-                <li key={s.id}>
-                  <Link to={`/students/${s.id}`} className="card">
-                    <span className="card-title">{s.name}</span>
-                    <span className="muted">
-                      {currentEnrollments(s.enrollments).map((e) => e.groups.name).join(', ') || 'No group'}
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            // Grouped by first letter (A, B, C…) so the list is easy to scan.
+            byLetter(students).map(([letter, list]) => (
+              <section key={letter} aria-label={letter}>
+                <h2 className="letter-header">{letter}</h2>
+                <ul className="card-list">
+                  {list.map((s) => (
+                    <li key={s.id}>
+                      <Link to={`/students/${s.id}`} className="card">
+                        <span className="card-title">{s.name}</span>
+                        <span className="muted">
+                          {currentEnrollments(s.enrollments).map((e) => e.groups.name).join(', ') || 'No group'}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))
           )}
         </>
       )}

@@ -1,7 +1,11 @@
-// The text fields of a student, shared by the quick-add and edit screens.
-// `values` is { name, phone, guardian_name, guardian_phone, notes, start_date }.
+import { EMPTY_CONTACT } from '../lib/students.js'
 
-export const EMPTY_STUDENT = { name: '', phone: '', guardian_name: '', guardian_phone: '', notes: '' }
+// The fields of a student, shared by the quick-add and edit screens.
+//   values   = { name, birth_date, school, start_date, notes }
+//   contacts = [{ name, phone }, ...]  (at least one with a phone)
+// compact = quick-add: the less-used fields go under "More details".
+
+export const EMPTY_STUDENT = { name: '', birth_date: '', school: '', notes: '' }
 
 // Empty text becomes null in the database instead of "".
 export function cleanStudent(values) {
@@ -12,29 +16,17 @@ export function cleanStudent(values) {
   return clean
 }
 
-export default function StudentFields({ values, onChange, nameRef }) {
+export default function StudentFields({ values, onChange, contacts, onContactsChange, nameRef, compact }) {
   const field = (key) => ({
     value: values[key] ?? '',
     onChange: (e) => onChange({ ...values, [key]: e.target.value }),
   })
 
-  return (
+  const moreFields = (
     <>
       <label>
-        Name
-        <input {...field('name')} ref={nameRef} autoCapitalize="words" required />
-      </label>
-      <label>
-        Phone / WhatsApp <span className="optional">(optional)</span>
-        <input {...field('phone')} type="tel" placeholder="e.g. 11 5555-1234" />
-      </label>
-      <label>
-        Parent’s name <span className="optional">(for kids)</span>
-        <input {...field('guardian_name')} autoCapitalize="words" />
-      </label>
-      <label>
-        Parent’s phone <span className="optional">(for kids)</span>
-        <input {...field('guardian_phone')} type="tel" />
+        School <span className="optional">(optional)</span>
+        <input {...field('school')} autoCapitalize="words" />
       </label>
       <label>
         Started on
@@ -45,5 +37,64 @@ export default function StudentFields({ values, onChange, nameRef }) {
         <textarea {...field('notes')} rows={2} />
       </label>
     </>
+  )
+
+  return (
+    <>
+      <label>
+        Name
+        <input {...field('name')} ref={nameRef} autoCapitalize="words" required />
+      </label>
+      <label>
+        Birth date <span className="optional">(for birthdays and exams)</span>
+        <input {...field('birth_date')} type="date" />
+      </label>
+      <ContactsEditor contacts={contacts} onChange={onContactsChange} />
+      {compact ? (
+        <details className="more-details">
+          <summary>More details (school, notes…)</summary>
+          {moreFields}
+        </details>
+      ) : (
+        moreFields
+      )}
+    </>
+  )
+}
+
+function ContactsEditor({ contacts, onChange }) {
+  const set = (i, key, value) => onChange(contacts.map((c, j) => (j === i ? { ...c, [key]: value } : c)))
+
+  return (
+    <fieldset className="contacts-editor">
+      <legend>
+        Contacts <span className="optional">(at least one phone)</span>
+      </legend>
+      {contacts.map((c, i) => (
+        <div key={i} className="slot-box">
+          <label>
+            {contacts.length > 1 ? `Contact ${i + 1}: name` : 'Contact name'}
+            <input
+              value={c.name}
+              onChange={(e) => set(i, 'name', e.target.value)}
+              placeholder={i === 0 ? 'e.g. Laura (mum), or the student' : 'e.g. Carlos (dad)'}
+              autoCapitalize="words"
+            />
+          </label>
+          <label>
+            Phone / WhatsApp
+            <input type="tel" value={c.phone} onChange={(e) => set(i, 'phone', e.target.value)} placeholder="e.g. 11 5555-1234" />
+          </label>
+          {contacts.length > 1 && (
+            <button type="button" className="btn-text" onClick={() => onChange(contacts.filter((_, j) => j !== i))}>
+              Remove this contact
+            </button>
+          )}
+        </div>
+      ))}
+      <button type="button" className="btn-secondary" onClick={() => onChange([...contacts, EMPTY_CONTACT])}>
+        + Add another contact
+      </button>
+    </fieldset>
   )
 }

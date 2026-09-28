@@ -8,7 +8,8 @@ export function callLink(phone) {
 // (mobile) + area code + number, e.g. 5491155551234. People write local
 // numbers like "11 5555-1234" or "011 15 5555-1234", so we convert them.
 // Returns null if we can't make sense of the number.
-export function whatsappLink(phone) {
+// `text` (optional) is a message already typed in when WhatsApp opens.
+export function whatsappLink(phone, text) {
   let digits = phone.replace(/\D/g, '')
 
   if (digits.startsWith('549')) {
@@ -31,5 +32,5 @@ export function whatsappLink(phone) {
     digits = '549' + digits
   }
 
-  return `https://wa.me/${digits}`
+  return `https://wa.me/${digits}` + (text ? `?text=${encodeURIComponent(text)}` : '')
 }

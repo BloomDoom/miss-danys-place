@@ -5,5 +5,6 @@
 --
 -- Supabase → SQL Editor → paste → Run. There is no undo.
 
-truncate payments, charges, absences, sessions, enrollments, students, group_prices, group_slots, groups
+truncate payments, charges, absences, sessions, enrollments, rewards, trinity_exams, student_contacts, reward_types,
+  students, group_prices, group_slots, groups
   restart identity;
