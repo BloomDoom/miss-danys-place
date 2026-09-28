@@ -9,12 +9,15 @@ import { saveErrorMessage } from '../lib/errors.js'
 import { useToast } from '../components/Toast.jsx'
 import LoadState from '../components/LoadState.jsx'
 import MakeupBanner from '../components/MakeupBanner.jsx'
+import Birthdays from '../components/Birthdays.jsx'
+import { birthdaysBetween } from '../lib/students.js'
+import { loadSettings } from '../lib/payments.js'
 
 async function loadDay(date) {
   const sessions = await loadSessions(date, date)
   const groupIds = [...new Set(sessions.map((s) => s.group_id))]
   const savedIds = sessions.filter((s) => s.id).map((s) => s.id)
-  const [enrollments, absences, makeups, pending] = await Promise.all([
+  const [enrollments, absences, makeups, pending, withBirthday, settings] = await Promise.all([
     groupIds.length
       ? unwrap(supabase.from('enrollments').select('group_id, start_date, end_date, students(id, name, active)').in('group_id', groupIds))
       : [],
@@ -29,9 +32,14 @@ async function loadDay(date) {
         )
       : [],
     loadPendingMakeups(),
+    unwrap(supabase.from('students').select('id, name, birth_date, student_contacts(*)').eq('active', true).not('birth_date', 'is', null)),
+    loadSettings(),
   ])
   return {
     pending,
+    // birthdays on this day and the 6 days after it
+    birthdays: birthdaysBetween(withBirthday, date, addDays(date, 6)),
+    birthdayMessage: settings.birthday_message,
     sessions: sessions.map((s) => ({
       ...s,
       studentCount: studentsOn(enrollments.filter((e) => e.group_id === s.group_id), s.date).length,
@@ -76,6 +84,7 @@ export default function Today() {
       )}
 
       <LoadState {...result} />
+      {result.data && <Birthdays birthdays={result.data.birthdays} date={date} message={result.data.birthdayMessage} />}
       <MakeupBanner pending={pending} />
 
       {sessions && (

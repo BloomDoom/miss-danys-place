@@ -18,7 +18,12 @@ export default function Settings() {
       <Link to="/groups" className="back-link">‹ Groups</Link>
       <h1>Settings</h1>
       <LoadState {...result} />
-      {result.data && <PaymentSettings settings={result.data} reload={result.reload} />}
+      {result.data && (
+        <>
+          <PaymentSettings settings={result.data} reload={result.reload} />
+          <BirthdayMessage settings={result.data} reload={result.reload} />
+        </>
+      )}
 
       <Backup />
 
@@ -40,6 +45,41 @@ export default function Settings() {
         </button>
       </section>
     </main>
+  )
+}
+
+// The text of the "Send birthday message" button on Today.
+function BirthdayMessage({ settings, reload }) {
+  const showToast = useToast()
+  const [text, setText] = useState(settings.birthday_message)
+  const [error, setError] = useState('')
+
+  async function save(e) {
+    e.preventDefault()
+    setError('')
+    if (!text.trim()) return setError('Write a message first.')
+    try {
+      await unwrap(supabase.from('settings').update({ birthday_message: text.trim() }).eq('id', 1))
+      reload()
+      showToast('Birthday message saved')
+    } catch (err) {
+      setError(saveErrorMessage(err))
+    }
+  }
+
+  return (
+    <section className="section">
+      <h2>Birthday message</h2>
+      <form onSubmit={save}>
+        <label>
+          Message
+          <textarea rows={4} value={text} onChange={(e) => setText(e.target.value)} />
+        </label>
+        <p className="muted">{'{name}'} is replaced by the student’s first name. You can still change the text in WhatsApp before sending.</p>
+        {error && <p className="error" role="alert">{error}</p>}
+        <button className="btn-secondary" disabled={text.trim() === settings.birthday_message}>Save message</button>
+      </form>
+    </section>
   )
 }
 

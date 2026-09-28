@@ -273,6 +273,9 @@ function Students({ group }) {
           </li>
         ))}
       </ul>
+      {students.length > 0 && (
+        <Link to={`/groups/${group.id}/message`} className="btn-primary">Message this group</Link>
+      )}
       <Link to={`/students/new?group=${group.id}`} className="btn-secondary">+ Add students to this group</Link>
     </section>
   )

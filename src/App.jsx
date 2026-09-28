@@ -11,6 +11,7 @@ import Students from './screens/Students.jsx'
 import Groups from './screens/Groups.jsx'
 import GroupNew from './screens/GroupNew.jsx'
 import GroupDetail from './screens/GroupDetail.jsx'
+import GroupMessage from './screens/GroupMessage.jsx'
 import StudentNew from './screens/StudentNew.jsx'
 import StudentDetail from './screens/StudentDetail.jsx'
 import Settings from './screens/Settings.jsx'
@@ -74,6 +75,7 @@ export default function App() {
             <Route path="/groups" element={<Groups />} />
             <Route path="/groups/new" element={<GroupNew />} />
             <Route path="/groups/:id" element={<GroupDetail />} />
+            <Route path="/groups/:id/message" element={<GroupMessage />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/settings/import" element={<Import />} />
             <Route path="*" element={<Navigate to="/" replace />} />

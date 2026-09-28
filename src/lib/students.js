@@ -44,6 +44,41 @@ export async function saveContacts(studentId, studentName, contacts, oldIds = []
   if (oldIds.length > 0) await unwrap(supabase.from('student_contacts').delete().in('id', oldIds))
 }
 
+// ───────── Birthdays
+
+const isLeapYear = (y) => (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0
+
+// The date of someone's birthday in a given year. Born on Feb 29 → their
+// birthday is Feb 28 in years without a Feb 29.
+export function birthdayIn(birthDate, year) {
+  const [, m, d] = birthDate.split('-')
+  if (m === '02' && d === '29' && !isLeapYear(year)) return `${year}-02-28`
+  return `${year}-${m}-${d}`
+}
+
+// Birthdays between two dates (both included, less than a year apart),
+// sorted by date: [{ student, date, turning }]. `turning` = the new age.
+export function birthdaysBetween(students, from, to) {
+  const years = [...new Set([Number(from.slice(0, 4)), Number(to.slice(0, 4))])]
+  const list = []
+  for (const student of students) {
+    if (!student.birth_date) continue
+    for (const year of years) {
+      const date = birthdayIn(student.birth_date, year)
+      if (date >= from && date <= to) {
+        list.push({ student, date, turning: year - Number(student.birth_date.slice(0, 4)) })
+      }
+    }
+  }
+  return list.sort((a, b) => a.date.localeCompare(b.date) || a.student.name.localeCompare(b.student.name, 'es'))
+}
+
+// A message template with {name} replaced by the student's first name.
+export function fillMessage(template, student) {
+  const firstName = student.name.trim().split(/\s+/)[0]
+  return template.replaceAll('{name}', firstName)
+}
+
 // Age in whole years on a date (today by default). null without a birth date.
 export function ageOn(birthDate, date = todayISO()) {
   if (!birthDate) return null

@@ -1093,3 +1093,44 @@ h2 {
   width: 100% !important;
   justify-content: center;
 }
+
+/* ───────── Round 2: birthdays, group message */
+.birthdays {
+  margin: 0.75rem 0;
+}
+.birthday-card {
+  gap: 0.5rem;
+  background: #fff8e6;
+  border: 2px solid #f2b84b;
+}
+.birthdays-soon {
+  margin: 0.5rem 0;
+}
+
+.send-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.send-row .btn-primary,
+.send-row .btn-secondary {
+  width: auto;
+  flex-shrink: 0;
+  min-height: var(--tap);
+  padding: 0.5rem 1.25rem;
+  display: flex;
+  align-items: center;
+}
+.send-row.sent {
+  opacity: 0.75;
+}
+[data-big-text] .send-row {
+  flex-direction: column;
+  align-items: stretch;
+}
+[data-big-text] .send-row .btn-primary,
+[data-big-text] .send-row .btn-secondary {
+  width: 100%;
+  justify-content: center;
+}
