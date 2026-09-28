@@ -1167,70 +1167,46 @@ h2 {
   color: var(--muted);
 }
 
-/* ───────── Round 2: Trinity exams grid */
-/* The table scrolls sideways inside this box, never the whole page */
-.table-scroll {
-  overflow-x: auto;
-  margin: 0 -1rem;
-  padding: 0 1rem;
-  -webkit-overflow-scrolling: touch;
-}
-.exam-table {
-  border-collapse: separate;
-  border-spacing: 0;
-  min-width: 100%;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-}
-.exam-table th,
-.exam-table td {
-  padding: 0.5rem;
-  border-bottom: 1px solid var(--border);
-  text-align: left;
-  vertical-align: middle;
-  white-space: nowrap;
-}
-.exam-table thead th {
-  color: var(--muted);
-  font-size: 0.9rem;
-}
-/* The student name column stays put while the rest scrolls */
-.exam-table tbody th,
-.exam-table thead th:first-child {
-  position: sticky;
-  left: 0;
-  z-index: 1;
-  background: var(--surface);
-  border-right: 1px solid var(--border);
-  white-space: normal;
-  min-width: 8rem;
-  max-width: 11rem;
-}
-.exam-table tbody th a {
-  display: block;
-  font-weight: 700;
-  color: var(--text);
-}
-.exam-table select,
-.exam-table input {
-  margin-top: 0;
-  width: auto;
-  min-width: 7.5rem;
-}
-.btn-remove {
-  padding: 0; /* keeps the 48px tap height from .btn-text */
-  font-size: 0.9rem;
-}
+/* ───────── Round 2: Trinity exams */
+/* Result colors, used in the list and on the result buttons */
 .result-fail {
   color: var(--danger);
-  font-weight: 700;
 }
 .result-pass,
 .result-merit,
 .result-distinction {
   color: #1b6e3a;
+}
+
+/* The result as big buttons on the exam screen, 2 per row */
+.result-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+.result-option {
+  min-height: 56px;
+  padding: 0.5rem;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
   font-weight: 700;
+  cursor: pointer;
+}
+.result-option:first-child {
+  grid-column: 1 / -1; /* "No result yet" takes the whole row */
+  color: var(--muted);
+}
+.result-option.selected {
+  border-color: currentColor;
+  border-width: 3px;
+  background: #f3f8f4;
+}
+.result-option.result-fail.selected {
+  background: #fdecea;
+}
+[data-big-text] .result-options {
+  grid-template-columns: 1fr;
 }
 
 /* ───────── Round 2: rewards */
@@ -1309,6 +1285,7 @@ h2 {
 }
 [data-big-text] .day-nav {
   flex-wrap: wrap;
+  margin-bottom: 0.75rem; /* keep the arrows off the button below */
 }
 [data-big-text] .day-nav > div {
   order: -1;

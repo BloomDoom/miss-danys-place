@@ -1,20 +1,12 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase.js'
 import { unwrap, useLoad } from '../lib/useLoad.js'
 import { formatDate, todayISO } from '../lib/format.js'
+import { LEVELS, RESULTS, examYear, groupByLevel } from '../lib/exams.js'
 import { saveErrorMessage } from '../lib/errors.js'
 import { useToast } from '../components/Toast.jsx'
 import LoadState from '../components/LoadState.jsx'
-
-// Trinity College London exam levels: GESE Grades 1–12 and ISE.
-const LEVELS = [
-  ...Array.from({ length: 12 }, (_, i) => `GESE Grade ${i + 1}`),
-  'ISE Foundation', 'ISE I', 'ISE II', 'ISE III', 'ISE IV',
-]
-
-// How Trinity reports results. Empty = no result yet.
-const RESULTS = { fail: 'Fail', pass: 'Pass', merit: 'Merit', distinction: 'Distinction' }
 
 async function loadExams() {
   const [exams, students] = await Promise.all([
@@ -26,20 +18,31 @@ async function loadExams() {
 }
 
 export default function Exams() {
+  // The year lives in the URL (/exams?year=2025) so coming back from an
+  // exam returns to the same year.
+  const [params, setParams] = useSearchParams()
+  const thisYear = Number(todayISO().slice(0, 4))
+  const year = Number(params.get('year')) || thisYear
+  const goTo = (y) => setParams(y === thisYear ? {} : { year: String(y) }, { replace: true })
+
   const result = useLoad(loadExams, [])
   const [adding, setAdding] = useState(false)
-  const today = todayISO()
 
-  // Upcoming (or no date yet) first, soonest first; then past, newest first.
-  const exams = result.data?.exams ?? []
-  const upcoming = exams
-    .filter((e) => !e.exam_date || e.exam_date >= today)
-    .sort((a, b) => (a.exam_date || '9999').localeCompare(b.exam_date || '9999') || a.students.name.localeCompare(b.students.name, 'es'))
-  const past = exams.filter((e) => e.exam_date && e.exam_date < today).sort((a, b) => b.exam_date.localeCompare(a.exam_date))
+  const exams = result.data?.exams.filter((e) => examYear(e) === year) ?? []
+  // Everyone sits in the same week, so a new exam starts with the date
+  // already used this year (the most common one).
+  const usualDate = mostCommon(exams.map((e) => e.exam_date).filter(Boolean))
 
   return (
     <main className="screen">
-      <h1>Trinity exams</h1>
+      <header className="day-nav">
+        <button className="btn-icon" onClick={() => goTo(year - 1)} aria-label="Previous year">‹</button>
+        <div>
+          <h1>Trinity exams</h1>
+          <p className="muted">{year}</p>
+        </div>
+        <button className="btn-icon" onClick={() => goTo(year + 1)} aria-label="Next year" disabled={year > thisYear}>›</button>
+      </header>
       <LoadState {...result} />
 
       {result.data && (
@@ -47,6 +50,7 @@ export default function Exams() {
           {adding ? (
             <AddExam
               students={result.data.students}
+              defaultDate={usualDate || ''}
               onDone={() => {
                 setAdding(false)
                 result.reload()
@@ -57,23 +61,54 @@ export default function Exams() {
           )}
 
           {exams.length === 0 && !adding && (
-            <p className="empty">No exams yet. Tap “Add exam” when a student signs up for a Trinity exam.</p>
+            <p className="empty">No exams in {year}. Tap “Add exam” for each student who will sit the Trinity exam.</p>
           )}
-          {upcoming.length > 0 && <ExamTable title={`Upcoming (${upcoming.length})`} exams={upcoming} reload={result.reload} />}
-          {past.length > 0 && <ExamTable title={`Past (${past.length})`} exams={past} reload={result.reload} />}
+
+          {groupByLevel(exams).map(([level, list]) => (
+            <section key={level ?? 'none'} className="section">
+              <h2>
+                {level ?? 'No level yet'} <span className="muted">· {list.length === 1 ? '1 student' : `${list.length} students`}</span>
+              </h2>
+              <ul className="card-list">
+                {list.map((exam) => (
+                  <li key={exam.id}>
+                    <Link to={`/exams/${exam.id}`} className="card">
+                      <span className="card-title">{exam.students.name} ›</span>
+                      <span>{exam.exam_date ? formatDate(exam.exam_date) : 'No exam date yet'}</span>
+                      <span className="muted">
+                        {exam.students.birth_date ? `Born ${formatDate(exam.students.birth_date)}` : 'Birth date not saved'}
+                        {' · '}
+                        {exam.result ? (
+                          <strong className={`result-${exam.result}`}>{RESULTS[exam.result]}</strong>
+                        ) : (
+                          'Result: –'
+                        )}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
         </>
       )}
     </main>
   )
 }
 
-function AddExam({ students, onDone }) {
+function mostCommon(values) {
+  const counts = {}
+  for (const v of values) counts[v] = (counts[v] || 0) + 1
+  return Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0] || null
+}
+
+function AddExam({ students, defaultDate, onDone }) {
+  const showToast = useToast()
   const [studentId, setStudentId] = useState('')
   const [level, setLevel] = useState('')
-  const [date, setDate] = useState('')
+  const [date, setDate] = useState(defaultDate)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
-  const showToast = useToast()
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -115,96 +150,12 @@ function AddExam({ students, onDone }) {
         Exam date <span className="optional">(if known)</span>
         <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
       </label>
-      <p className="muted">The name and birth date come from the student’s details. The result is added later, in the table.</p>
+      <p className="muted">The name and birth date come from the student’s details. Add the result later by tapping the exam.</p>
       {error && <p className="error" role="alert">{error}</p>}
       <div className="btn-row">
         <button type="button" className="btn-secondary" onClick={onDone}>Cancel</button>
         <button className="btn-primary" disabled={busy}>{busy ? 'Saving…' : 'Add exam'}</button>
       </div>
     </form>
-  )
-}
-
-// The 5-column grid. Level, date and result are edited right in the table
-// and saved as soon as they change. On a narrow screen the table scrolls
-// sideways while the name column stays in place.
-function ExamTable({ title, exams, reload }) {
-  const showToast = useToast()
-
-  async function change(exam, field, value) {
-    try {
-      await unwrap(supabase.from('trinity_exams').update({ [field]: value || null }).eq('id', exam.id))
-      showToast('Saved')
-      reload()
-    } catch (err) {
-      showToast(saveErrorMessage(err))
-    }
-  }
-
-  async function remove(exam) {
-    if (!window.confirm(`Remove ${exam.students.name}’s exam${exam.level ? ` (${exam.level})` : ''}?`)) return
-    try {
-      await unwrap(supabase.from('trinity_exams').update({ deleted_at: new Date().toISOString() }).eq('id', exam.id))
-      showToast('Exam removed')
-      reload()
-    } catch (err) {
-      showToast(saveErrorMessage(err))
-    }
-  }
-
-  return (
-    <section className="section">
-      <h2>{title}</h2>
-      <div className="table-scroll">
-        <table className="exam-table">
-          <thead>
-            <tr>
-              <th scope="col">Student</th>
-              <th scope="col">Birth date</th>
-              <th scope="col">Level</th>
-              <th scope="col">Exam date</th>
-              <th scope="col">Result</th>
-            </tr>
-          </thead>
-          <tbody>
-            {exams.map((exam) => (
-              <tr key={exam.id}>
-                <th scope="row">
-                  <Link to={`/students/${exam.students.id}`}>{exam.students.name}</Link>
-                  <button className="btn-text btn-remove" onClick={() => remove(exam)} aria-label={`Remove ${exam.students.name}’s exam`}>
-                    Remove
-                  </button>
-                </th>
-                <td>{exam.students.birth_date ? formatDate(exam.students.birth_date) : <span className="muted">Not saved</span>}</td>
-                <td>
-                  <select value={exam.level || ''} onChange={(e) => change(exam, 'level', e.target.value)} aria-label="Exam level">
-                    <option value="">–</option>
-                    {LEVELS.map((l) => (
-                      <option key={l} value={l}>{l}</option>
-                    ))}
-                  </select>
-                </td>
-                <td>
-                  <input type="date" value={exam.exam_date || ''} onChange={(e) => change(exam, 'exam_date', e.target.value)} aria-label="Exam date" />
-                </td>
-                <td>
-                  <select
-                    value={exam.result || ''}
-                    onChange={(e) => change(exam, 'result', e.target.value)}
-                    aria-label="Result"
-                    className={exam.result ? `result-${exam.result}` : ''}
-                  >
-                    <option value="">–</option>
-                    {Object.entries(RESULTS).map(([key, label]) => (
-                      <option key={key} value={key}>{label}</option>
-                    ))}
-                  </select>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </section>
   )
 }
