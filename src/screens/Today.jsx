@@ -4,27 +4,41 @@ import { supabase } from '../lib/supabase.js'
 import { unwrap, useLoad } from '../lib/useLoad.js'
 import { addDays, formatDate, formatDay, formatTime, isoWeekday, todayISO, weekdayName } from '../lib/format.js'
 import { loadSessions, sessionPath, studentsOn, updateSession } from '../lib/sessions.js'
+import { loadPendingMakeups } from '../lib/makeups.js'
 import { saveErrorMessage } from '../lib/errors.js'
 import { useToast } from '../components/Toast.jsx'
 import LoadState from '../components/LoadState.jsx'
+import MakeupBanner from '../components/MakeupBanner.jsx'
 
 async function loadDay(date) {
   const sessions = await loadSessions(date, date)
   const groupIds = [...new Set(sessions.map((s) => s.group_id))]
   const savedIds = sessions.filter((s) => s.id).map((s) => s.id)
-  const [enrollments, absences] = await Promise.all([
+  const [enrollments, absences, makeups, pending] = await Promise.all([
     groupIds.length
       ? unwrap(supabase.from('enrollments').select('group_id, start_date, end_date, students(id, name, active)').in('group_id', groupIds))
       : [],
     savedIds.length
       ? unwrap(supabase.from('absences').select('session_id').in('session_id', savedIds).is('deleted_at', null))
       : [],
+    // make-up students booked into these classes
+    savedIds.length
+      ? unwrap(
+          supabase.from('absences').select('makeup_session_id').in('makeup_session_id', savedIds)
+            .in('makeup_status', ['scheduled', 'done']).is('deleted_at', null),
+        )
+      : [],
+    loadPendingMakeups(),
   ])
-  return sessions.map((s) => ({
-    ...s,
-    studentCount: studentsOn(enrollments.filter((e) => e.group_id === s.group_id), s.date).length,
-    absentCount: absences.filter((a) => a.session_id === s.id).length,
-  }))
+  return {
+    pending,
+    sessions: sessions.map((s) => ({
+      ...s,
+      studentCount: studentsOn(enrollments.filter((e) => e.group_id === s.group_id), s.date).length,
+      absentCount: absences.filter((a) => a.session_id === s.id).length,
+      makeupCount: makeups.filter((m) => m.makeup_session_id === s.id).length,
+    })),
+  }
 }
 
 // The day's name for the big title.
@@ -44,7 +58,8 @@ export default function Today() {
   const goTo = (newDate) => setParams(newDate === todayISO() ? {} : { date: newDate }, { replace: true })
 
   const result = useLoad(() => loadDay(date), [date])
-  const sessions = result.data
+  const sessions = result.data?.sessions
+  const pending = result.data?.pending ?? []
 
   return (
     <main className="screen">
@@ -61,6 +76,7 @@ export default function Today() {
       )}
 
       <LoadState {...result} />
+      <MakeupBanner pending={pending} />
 
       {sessions && (
         <>
@@ -105,7 +121,12 @@ function SessionCard({ session: s }) {
           {s.group.name}
           {!s.slot_id && <span className="badge">Extra</span>}
         </span>
-        <span className="muted">{s.studentCount === 1 ? '1 student' : `${s.studentCount} students`}</span>
+        <span className="muted">
+          {s.studentCount === 1 ? '1 student' : `${s.studentCount} students`}
+          {s.makeupCount > 0 && (
+            <strong className="makeup-count"> · +{s.makeupCount} make-up{s.makeupCount > 1 && 's'}</strong>
+          )}
+        </span>
         {status}
       </span>
     </Link>

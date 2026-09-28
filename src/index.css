@@ -820,3 +820,86 @@ button.back-link {
   grid-template-columns: 1fr 1fr;
   gap: 0 1rem;
 }
+
+/* ───────── Phase 5: make-ups */
+.makeup-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 56px;
+  margin: 0.75rem 0;
+  padding: 0.75rem 1rem;
+  background: #e6f0f1;
+  border: 2px solid var(--primary);
+  border-radius: var(--radius);
+  color: var(--text);
+  text-decoration: none;
+}
+.makeup-banner.needs-action {
+  background: #fff1dc;
+  border-color: #c77700;
+}
+.makeup-banner span:last-child {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.makeup-count {
+  color: var(--primary);
+}
+
+/* The label under a make-up student's name in the attendance list */
+.makeup-label {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--primary);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.makeup-card {
+  gap: 0.5rem;
+}
+.makeup-card.makeup-check,
+.makeup-card.makeup-cancelled,
+.makeup-card.makeup-missed {
+  border-left: 6px solid #c77700;
+}
+.makeup-card.makeup-scheduled {
+  border-left: 6px solid var(--primary);
+}
+.makeup-card.makeup-done,
+.makeup-card.makeup-waived {
+  border-left: 6px solid var(--border);
+}
+.makeup-line {
+  margin: 0;
+}
+
+/* Choosing the make-up class */
+.picker {
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+}
+.picker-day {
+  margin: 1rem 0 0.4rem;
+  font-size: 1rem;
+  color: var(--muted);
+}
+.picker-option {
+  display: block;
+  width: 100%;
+  min-height: var(--tap);
+  margin-bottom: 0.4rem;
+  padding: 0.6rem 1rem;
+  background: var(--bg);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+.picker-option:active {
+  border-color: var(--primary);
+}

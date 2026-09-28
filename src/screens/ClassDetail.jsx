@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase.js'
 import { unwrap, useLoad } from '../lib/useLoad.js'
 import { formatDay, formatTime } from '../lib/format.js'
 import { ensureSaved, loadSession, sessionPath, studentsOn, updateSession } from '../lib/sessions.js'
+import { loadMakeupsFor, updateMakeup } from '../lib/makeups.js'
 import { saveErrorMessage } from '../lib/errors.js'
 import { useToast } from '../components/Toast.jsx'
 import LoadState from '../components/LoadState.jsx'
@@ -13,12 +14,15 @@ import { useGoBack } from '../components/BackButton.jsx'
 // weekly class that hasn't been saved yet).
 async function loadClass(params) {
   const session = await loadSession(params)
-  const [enrollments, absences] = await Promise.all([
+  const [enrollments, absences, makeups] = await Promise.all([
     unwrap(supabase.from('enrollments').select('start_date, end_date, students(id, name, active)').eq('group_id', session.group_id)),
     session.id ? unwrap(supabase.from('absences').select('*').eq('session_id', session.id).is('deleted_at', null)) : [],
+    // Students from other classes coming here to make up an absence.
+    // (Only saved classes can have make-ups booked into them.)
+    session.id ? loadMakeupsFor(session.id) : [],
   ])
   const absentIds = new Set(absences.map((a) => a.student_id))
-  return { session, absentIds, students: studentsOn(enrollments, session.date, absentIds) }
+  return { session, absentIds, makeups, students: studentsOn(enrollments, session.date, absentIds) }
 }
 
 export default function ClassDetail() {
@@ -58,11 +62,19 @@ export default function ClassDetail() {
   )
 }
 
-function Attendance({ session, students, absentIds, reload, onSaved }) {
+function Attendance({ session, students, absentIds, makeups, reload, onSaved }) {
   const showToast = useToast()
   const [absent, setAbsent] = useState(new Set(absentIds))
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+
+  // Make-up students, by student id. Usually they're from another group
+  // and get their own rows; if one is also in this group, their normal
+  // row just gets the make-up label.
+  const makeupFor = new Map(makeups.map((m) => [m.student_id, m]))
+  const regularIds = new Set(students.map((s) => s.id))
+  const makeupOnly = makeups.filter((m) => !regularIds.has(m.student_id)).map((m) => m.students)
+  const everyone = [...students, ...makeupOnly]
 
   function toggle(studentId) {
     const next = new Set(absent)
@@ -75,7 +87,8 @@ function Attendance({ session, students, absentIds, reload, onSaved }) {
     setBusy(true)
     try {
       const saved = await ensureSaved(session)
-      const added = [...absent].filter((id) => !absentIds.has(id))
+      // Absences only count for this group's own students.
+      const added = [...absent].filter((id) => regularIds.has(id) && !absentIds.has(id))
       const removed = [...absentIds].filter((id) => !absent.has(id))
       if (added.length > 0) {
         // upsert: if this student was marked absent before and then
@@ -95,6 +108,12 @@ function Attendance({ session, students, absentIds, reload, onSaved }) {
           supabase.from('absences').update({ deleted_at: new Date().toISOString() }).eq('session_id', saved.id).in('student_id', removed),
         )
       }
+      // Make-up students: came → make-up done. Didn't come → still needs one.
+      for (const m of makeups) {
+        const came = !absent.has(m.student_id)
+        if (came && m.makeup_status !== 'done') await updateMakeup(m.id, { makeup_status: 'done' })
+        if (!came) await updateMakeup(m.id, { makeup_status: 'missed', makeup_session_id: null })
+      }
       await unwrap(supabase.from('sessions').update({ attendance_saved_at: new Date().toISOString() }).eq('id', saved.id))
       showToast('Attendance saved')
       onSaved()
@@ -105,23 +124,31 @@ function Attendance({ session, students, absentIds, reload, onSaved }) {
     }
   }
 
-  if (students.length === 0) {
+  if (everyone.length === 0) {
     return <p className="empty">No students in this group on this day. Add students from the Students tab.</p>
   }
 
-  const presentCount = students.length - absent.size
+  const presentCount = everyone.length - absent.size
   return (
     <section className="section">
       <p>
         Everyone is marked <strong>present</strong>. Tap the students who were <strong>absent</strong>.
       </p>
       <ul className="roster">
-        {students.map((s) => {
+        {everyone.map((s) => {
           const isAbsent = absent.has(s.id)
+          const makeup = makeupFor.get(s.id)
           return (
             <li key={s.id}>
               <button className={`roster-row ${isAbsent ? 'absent' : ''}`} aria-pressed={isAbsent} onClick={() => toggle(s.id)}>
-                <span className="roster-name">{s.name}</span>
+                <span className="roster-name">
+                  {s.name}
+                  {makeup && (
+                    <span className="makeup-label">
+                      Make-up · from {makeup.session.groups.name} ({formatDay(makeup.session.date)})
+                    </span>
+                  )}
+                </span>
                 <span className="roster-status">{isAbsent ? '✗ Absent' : '✓ Present'}</span>
               </button>
             </li>

@@ -3,15 +3,18 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase.js'
 import { unwrap, useLoad } from '../lib/useLoad.js'
 import { currentEnrollments, normalize } from '../lib/groups.js'
+import { loadPendingMakeups } from '../lib/makeups.js'
 import LoadState from '../components/LoadState.jsx'
+import MakeupBanner from '../components/MakeupBanner.jsx'
 
 async function loadStudents() {
-  const [students, groups] = await Promise.all([
+  const [students, groups, pending] = await Promise.all([
     unwrap(supabase.from('students').select('*, enrollments(group_id, end_date, groups(name))')),
     unwrap(supabase.from('groups').select('id, name').eq('active', true).order('name')),
+    loadPendingMakeups(),
   ])
   students.sort((a, b) => a.name.localeCompare(b.name, 'es'))
-  return { students, groups }
+  return { students, groups, pending }
 }
 
 export default function Students() {
@@ -38,6 +41,7 @@ export default function Students() {
 
       {result.data && (
         <>
+          <MakeupBanner pending={result.data.pending} />
           <Link to="/students/new" className="btn-primary">+ Add students</Link>
 
           <div className="filters">
