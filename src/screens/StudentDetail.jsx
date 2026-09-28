@@ -13,6 +13,7 @@ import StudentFields, { cleanStudent } from '../components/StudentFields.jsx'
 import StudentPayments from '../components/StudentPayments.jsx'
 import StudentAbsences from '../components/StudentAbsences.jsx'
 import StudentRewards from '../components/StudentRewards.jsx'
+import StudentAttendance from '../components/StudentAttendance.jsx'
 import BackButton from '../components/BackButton.jsx'
 
 async function loadStudent(id) {
@@ -112,6 +113,8 @@ function ViewStudent({ student, onEdit, reload }) {
       ) : (
         contacts.map((c) => <Contact key={c.id} label={c.name} phone={c.phone} />)
       )}
+
+      <StudentAttendance student={student} />
 
       {student.notes && (
         <section className="section">

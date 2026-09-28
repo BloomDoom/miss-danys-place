@@ -13,6 +13,7 @@ vite.config.js              build settings + PWA manifest and service worker
 supabase/
   schema.sql                all tables and security rules (run first)
   02-payments.sql           monthly fees function (run second)
+  03-round2.sql             contacts, birthdays, rewards, Trinity exams, Cuenta DNI (run third)
   reset-test-data.sql       ⚠️ erases all data (only before loading real data)
 src/
   main.jsx                  starts React, the router and the crash screen
@@ -22,6 +23,10 @@ src/
     sessions.js             which classes happen on which day (the core logic)
     payments.js             fee statuses: paid / partial / unpaid / overdue
     makeups.js              make-up statuses
+    students.js             contacts, age, birthdays
+    rewards.js              reward stickers
+    attendance.js           attendance % per student and group
+    bigText.js              detects a large iPhone text size (data-big-text)
     format.js               dates, months, money (Argentine format)
     useLoad.js              loading data in a screen (+ unwrap)
     backup.js, csv.js       CSV export and import
@@ -47,7 +52,7 @@ Changing a price only updates fees with no payments and no hand edit.
 1. Create a free project at [supabase.com](https://supabase.com). Pick the
    São Paulo region (closest to Argentina).
 2. **SQL Editor → New query**: paste all of `supabase/schema.sql` and press **Run**.
-   Then do the same with `supabase/02-payments.sql` (the monthly fees function).
+   Then do the same with `supabase/02-payments.sql` and `supabase/03-round2.sql`, in that order.
 3. **Authentication → Sign In / Providers**: turn **off** "Allow new users to sign up".
 4. **Authentication → Users → Add user → Create new user**: her email and a
    password, with "Auto Confirm User" ticked.

@@ -1289,3 +1289,36 @@ h2 {
 [data-big-text] .row-list li {
   flex-wrap: wrap;
 }
+
+/* ───────── Round 2: attendance insights */
+.attendance-line {
+  padding: 0.75rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.attendance-row.has-absences {
+  border-left: 6px solid #c77700;
+}
+
+/* ‹ Title › rows (Home, Payments, Attendance): the title may shrink and wrap.
+   With big text the title gets its own line and the arrows go below it,
+   otherwise a long word like "Attendance" pushes the page sideways. */
+.day-nav > div {
+  min-width: 0;
+}
+[data-big-text] .day-nav {
+  flex-wrap: wrap;
+}
+[data-big-text] .day-nav > div {
+  order: -1;
+  flex-basis: 100%;
+}
+/* Banner links (Make-ups, Attendance): the text wraps so the › stays on screen */
+.makeup-banner > span:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.makeup-banner > span:last-child {
+  flex-shrink: 0;
+}

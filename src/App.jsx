@@ -18,6 +18,7 @@ import Settings from './screens/Settings.jsx'
 import Import from './screens/Import.jsx'
 import Makeups from './screens/Makeups.jsx'
 import Exams from './screens/Exams.jsx'
+import Insights from './screens/Insights.jsx'
 import TabBar from './components/TabBar.jsx'
 import { ToastProvider } from './components/Toast.jsx'
 
@@ -70,6 +71,7 @@ export default function App() {
             <Route path="/class/slot/:slotId/:date" element={<ClassDetail />} />
             <Route path="/makeups" element={<Makeups />} />
             <Route path="/exams" element={<Exams />} />
+            <Route path="/insights" element={<Insights />} />
             <Route path="/payments" element={<Payments />} />
             <Route path="/students" element={<Students />} />
             <Route path="/students/new" element={<StudentNew />} />

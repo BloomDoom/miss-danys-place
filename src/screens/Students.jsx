@@ -53,6 +53,10 @@ export default function Students() {
       {result.data && (
         <>
           <MakeupBanner pending={result.data.pending} />
+          <Link to="/insights" className="makeup-banner">
+            <span><strong>Attendance</strong> · who is missing classes</span>
+            <span aria-hidden="true">›</span>
+          </Link>
 
           {/* Pinned at the top while scrolling, so search and "+ Add" are always at hand */}
           <div className="filters">
