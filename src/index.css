@@ -177,6 +177,20 @@ textarea {
   font-weight: 400;
 }
 
+/* Safari on iPhone draws time/date boxes its own way (fixed width,
+   different height). Turning that off makes them match the other boxes.
+   Tapping still opens the iPhone time/date wheel. */
+input[type='time'],
+input[type='date'] {
+  -webkit-appearance: none;
+  appearance: none;
+  min-width: 0;
+}
+input::-webkit-date-and-time-value {
+  text-align: left;
+  min-height: 1.45em;
+}
+
 input:focus,
 select:focus,
 textarea:focus {
@@ -406,7 +420,9 @@ label.btn-secondary {
 
 .slot-fields {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  /* minmax(0, 1fr) lets the columns shrink; plain 1fr won't go smaller
+     than the widest thing inside (the iPhone time picker). */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 0 0.75rem;
 }
 .slot-fields label:first-child {
