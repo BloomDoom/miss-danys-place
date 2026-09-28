@@ -1,0 +1,256 @@
+/* ───────── Colors and sizes used everywhere. Change them here. */
+:root {
+  --bg: #faf8f4;          /* warm off-white page background */
+  --surface: #ffffff;     /* cards */
+  --text: #1a1a1a;        /* near-black: high contrast */
+  --muted: #555555;       /* secondary text, still readable (7:1 contrast) */
+  --border: #d9d4ca;
+  --primary: #0e5c66;     /* dark teal: buttons, active tab */
+  --primary-text: #ffffff;
+  --danger: #b3261e;      /* errors, unpaid */
+  --tap: 48px;            /* minimum height of anything you can tap */
+  --tab-bar-height: 64px;
+  --radius: 12px;
+}
+
+/* ───────── Text size + iOS Dynamic Type
+   -apple-system-body uses the text size chosen in the iPhone's
+   Settings → Display → Text Size. Everything else uses "rem", which is
+   relative to that, so the whole app grows with her setting.
+   Other browsers fall back to 17px. */
+html {
+  font-size: 17px;
+}
+@supports (font: -apple-system-body) {
+  html {
+    font: -apple-system-body;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, system-ui, 'Segoe UI', Roboto, sans-serif;
+  font-size: 1.0625rem; /* 18px at the default iPhone text size */
+  line-height: 1.45;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  /* Keep content out from under the Dynamic Island / status bar. */
+  padding-top: env(safe-area-inset-top);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+h1 {
+  font-size: 1.75rem;
+  margin: 0.5rem 0 1rem;
+}
+
+/* ───────── Screen layout */
+.screen {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 1rem;
+  /* Leave room so the tab bar never covers the last item. */
+  padding-bottom: calc(var(--tab-bar-height) + env(safe-area-inset-bottom) + 1.5rem);
+}
+
+.screen.center {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+}
+
+.screen-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+/* Explains what to do when a list is still empty. */
+.empty {
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem 1rem;
+  text-align: center;
+}
+
+.error {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  color: var(--primary);
+  font-size: 1.0625rem;
+  text-decoration: none;
+}
+
+/* ───────── Buttons and form fields */
+button,
+input,
+select,
+textarea {
+  font: inherit; /* form fields don't inherit the font by default */
+}
+
+.btn-primary,
+.btn-secondary {
+  display: block;
+  width: 100%;
+  min-height: 56px;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: var(--primary-text);
+  border: none;
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+}
+
+.btn-secondary {
+  background: var(--surface);
+  color: var(--primary);
+  border: 2px solid var(--primary);
+}
+
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap);
+  height: var(--tap);
+  color: var(--text);
+}
+
+.btn-icon svg {
+  width: 28px;
+  height: 28px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+input,
+select,
+textarea {
+  display: block;
+  width: 100%;
+  min-height: var(--tap);
+  margin-top: 0.35rem;
+  padding: 0.6rem 0.75rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 400;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+/* ───────── Login */
+.login {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-bottom: 1rem;
+}
+
+.login h1 {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+/* ───────── Offline message */
+.offline-banner {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--danger);
+  color: #fff;
+  padding: 0.75rem 1rem;
+  text-align: center;
+  font-weight: 600;
+}
+
+/* ───────── Bottom tab bar */
+.tab-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  /* Stay above the iPhone's home indicator bar. */
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+.tab {
+  flex: 1;
+  height: var(--tab-bar-height);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.tab svg {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* NavLink adds the "active" class to the current tab. */
+.tab.active {
+  color: var(--primary);
+}
