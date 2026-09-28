@@ -14,7 +14,7 @@ export default defineConfig({
     // opens fast) and the web manifest (makes "Add to Home Screen" work).
     VitePWA({
       registerType: 'autoUpdate', // new versions install themselves
-      includeAssets: ['apple-touch-icon.png', 'favicon.svg'],
+      includeAssets: ['apple-touch-icon.png', 'favicon.png'],
       manifest: {
         name: "Miss Dany's Place",
         short_name: "Miss Dany's",
@@ -28,7 +28,8 @@ export default defineConfig({
         icons: [
           { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
-          { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          // Android may crop icons into a circle; this version has extra margin.
+          { src: 'icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
       workbox: {
