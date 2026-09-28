@@ -1,6 +1,6 @@
 import { WEEKDAYS } from '../lib/format.js'
 
-export const DURATIONS = [30, 45, 60, 75, 90, 120]
+export const DURATIONS = [30, 45, 60, 70, 75, 90, 120]
 
 export const NEW_SLOT = { weekday: 2, start_time: '18:00', duration_min: 60 }
 

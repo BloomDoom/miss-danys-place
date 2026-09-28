@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase.js'
 import { unwrap, useLoad } from '../lib/useLoad.js'
 import { addMonths, currentMonthISO, formatMoney, formatMonth } from '../lib/format.js'
-import { STATUS_LABELS, ensureCharges, loadSettings, sortByStatus, withStatus } from '../lib/payments.js'
+import { METHODS, STATUS_LABELS, ensureCharges, loadSettings, sortByStatus, totalsByMethod, withStatus } from '../lib/payments.js'
 import LoadState from '../components/LoadState.jsx'
 import PayPanel from '../components/PayPanel.jsx'
 
@@ -37,6 +37,7 @@ export default function Payments() {
   const expected = charges?.reduce((sum, c) => sum + c.amount, 0) ?? 0
   const collected = charges?.reduce((sum, c) => sum + Math.min(c.paid, c.amount), 0) ?? 0
   const owing = charges?.filter((c) => c.status !== 'paid').length ?? 0
+  const byMethod = charges ? totalsByMethod(charges) : []
 
   return (
     <main className="screen">
@@ -78,6 +79,16 @@ export default function Payments() {
                 <div style={{ width: `${expected ? (collected / expected) * 100 : 0}%` }} />
               </div>
               <p>{owing === 0 ? 'Everyone has paid 🎉' : owing === 1 ? '1 student still has to pay' : `${owing} students still have to pay`}</p>
+              {byMethod.length > 0 && (
+                <ul className="method-totals" aria-label="Collected by payment method">
+                  {byMethod.map(([method, total]) => (
+                    <li key={method}>
+                      <span>{METHODS[method]}</span>
+                      <strong>{formatMoney(total)}</strong>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </section>
           )}
 

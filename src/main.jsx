@@ -4,6 +4,9 @@ import { HashRouter } from 'react-router-dom'
 import App from './App.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import './index.css'
+import { watchTextSize } from './lib/bigText.js'
+
+watchTextSize()
 
 // HashRouter keeps the page in the URL after a "#" (…/#/students).
 // GitHub Pages only knows about index.html, so normal URLs like

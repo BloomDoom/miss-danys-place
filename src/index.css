@@ -93,12 +93,24 @@ h1 {
   font-weight: 600;
 }
 
+/* "‹ Back" stays pinned at the top of the screen while scrolling.
+   The negative margin stretches its background band edge to edge. */
 .back-link {
-  display: inline-flex;
+  position: sticky;
+  top: env(safe-area-inset-top);
+  z-index: 15;
+  display: flex;
   align-items: center;
+  width: calc(100% + 2rem);
   min-height: var(--tap);
+  margin: -1rem -1rem 0;
+  padding: 0.25rem 1rem;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
   color: var(--primary);
   font-size: 1.0625rem;
+  font-weight: 600;
+  text-align: left;
   text-decoration: none;
 }
 
@@ -249,9 +261,12 @@ textarea:focus {
   justify-content: center;
   gap: 2px;
   color: var(--muted);
-  font-size: 0.9rem;
+  /* The tab bar has a fixed height, so its labels stop growing at 15px,
+     like the iPhone's own apps. The rest of the app grows with her text. */
+  font-size: min(0.9rem, 15px);
   font-weight: 600;
   text-decoration: none;
+  white-space: nowrap;
 }
 
 .tab svg {
@@ -565,9 +580,8 @@ details summary {
 
 /* ───────── Phase 3: Today, classes, attendance */
 button.back-link {
-  background: none;
   border: none;
-  padding: 0;
+  border-bottom: 1px solid var(--border);
   cursor: pointer;
 }
 
@@ -795,7 +809,23 @@ button.back-link {
 }
 .method-buttons {
   display: grid;
+  grid-template-columns: 1fr 1fr; /* 4 methods in a 2×2 grid */
   gap: 0.5rem;
+}
+
+/* Payments summary: collected per method */
+.method-totals {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0.5rem 0 0;
+  border-top: 1px solid var(--border);
+}
+.method-totals li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0 1rem;
+  padding: 0.2rem 0;
 }
 .btn-cancel {
   width: 100%;
@@ -933,4 +963,75 @@ textarea:focus-visible {
   .dimmed {
     opacity: 0.8;
   }
+}
+
+/* ───────── Round 2: big text (she uses a large iPhone font)
+   Long names wrap instead of pushing the page sideways. */
+.card-title,
+.roster-name,
+.charge-name,
+.row-link {
+  overflow-wrap: anywhere;
+}
+/* Titles only break inside a word if that single word doesn't fit */
+h1,
+h2 {
+  overflow-wrap: break-word;
+}
+
+/* data-big-text is set by src/lib/bigText.js when the text size is large.
+   Everything goes into one column and nothing sticks over the content. */
+[data-big-text] .screen {
+  padding-bottom: calc(var(--tab-bar-height) + env(safe-area-inset-bottom) + 4rem);
+}
+/* Titles grow less than body text, or a title alone fills the screen */
+[data-big-text] h1 {
+  font-size: 1.2rem;
+}
+[data-big-text] h2 {
+  font-size: 1.1rem;
+}
+[data-big-text] button,
+[data-big-text] a.btn-primary,
+[data-big-text] a.btn-secondary {
+  min-width: 0;
+  overflow-wrap: anywhere; /* "Mercado Pago" must fit inside its button */
+}
+[data-big-text] .save-bar {
+  position: static; /* a sticky Save bar would cover half the screen */
+}
+[data-big-text] .slot-fields {
+  grid-template-columns: minmax(0, 1fr);
+}
+[data-big-text] .slot-fields label:first-child {
+  grid-column: auto;
+}
+[data-big-text] .btn-row,
+[data-big-text] .charge-top,
+[data-big-text] .session-card,
+[data-big-text] .roster-row {
+  flex-direction: column;
+  align-items: stretch;
+}
+[data-big-text] .charge-right {
+  align-items: flex-start;
+  text-align: left;
+}
+[data-big-text] .roster-row {
+  text-align: left;
+}
+[data-big-text] .method-buttons,
+[data-big-text] .month-grid {
+  grid-template-columns: 1fr;
+}
+[data-big-text] .day-nav {
+  gap: 0.5rem;
+}
+[data-big-text] .day-nav .btn-icon {
+  flex-shrink: 0;
+}
+/* The Undo message is fixed on screen, so it stays a readable-but-limited size */
+[data-big-text] .toast {
+  font-size: min(1rem, 24px);
+  flex-wrap: wrap;
 }

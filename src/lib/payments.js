@@ -7,6 +7,16 @@ export const METHODS = {
   cash: 'Cash',
   transfer: 'Transfer',
   mercado_pago: 'Mercado Pago',
+  cuenta_dni: 'Cuenta DNI',
+}
+
+// Total collected per payment method, biggest first: [['cash', 50000], ...]
+export function totalsByMethod(charges) {
+  const totals = {}
+  for (const charge of charges) {
+    for (const p of activePayments(charge)) totals[p.method] = (totals[p.method] || 0) + p.amount
+  }
+  return Object.entries(totals).sort((a, b) => b[1] - a[1])
 }
 
 export const STATUS_LABELS = {
