@@ -65,8 +65,8 @@ export default function StudentFields({ values, onChange, contacts, onContactsCh
           <label>
             Grade or year
             <select {...field('school_year_type')}>
-              <option value="grade">Grade (primaria)</option>
-              <option value="year">Year (secundaria)</option>
+              <option value="grade">Grade</option>
+              <option value="year">Year</option>
             </select>
           </label>
         </div>
