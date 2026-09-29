@@ -1633,3 +1633,25 @@ textarea {
 [data-big-text] h1 {
   font-size: min(1.2rem, 46px);
 }
+
+/* Group message: the one-time broadcast list setup */
+.setup-box {
+  padding: 0.75rem 1rem;
+  background: var(--surface);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow);
+}
+.setup-steps {
+  margin: 0.5rem 0 1rem;
+  padding-left: 1.4rem;
+}
+.setup-steps li {
+  margin-bottom: 0.75rem;
+}
+.setup-steps .btn-secondary {
+  margin: 0.5rem 0 0.25rem;
+}
+.setup-steps .muted {
+  display: block;
+  font-size: 0.95rem;
+}

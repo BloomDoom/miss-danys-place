@@ -7,6 +7,13 @@ export function callLink(phone) {
 // WhatsApp needs the full international number: 54 (Argentina) + 9
 // (mobile) + area code + number, e.g. 5491155551234. People write local
 // numbers like "11 5555-1234" or "011 15 5555-1234", so we convert them.
+// "11 5555-1234" → "+5491155551234": the full number, for saving
+// contacts that WhatsApp recognizes. null if the number can't be read.
+export function internationalNumber(phone) {
+  const link = whatsappLink(phone)
+  return link && '+' + link.replace('https://wa.me/', '')
+}
+
 // Returns null if we can't make sense of the number.
 // `text` (optional) is a message already typed in when WhatsApp opens.
 export function whatsappLink(phone, text) {
