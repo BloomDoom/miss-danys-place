@@ -14,6 +14,7 @@ supabase/
   schema.sql                all tables and security rules (run first)
   02-payments.sql           monthly fees function (run second)
   03-round2.sql             contacts, birthdays, rewards, Trinity exams, Cuenta DNI (run third)
+  04-school-year.sql        school year (Grade/Year 1–7) for students (run fourth)
   reset-test-data.sql       ⚠️ erases all data (only before loading real data)
 src/
   main.jsx                  starts React, the router and the crash screen
@@ -52,7 +53,7 @@ Changing a price only updates fees with no payments and no hand edit.
 1. Create a free project at [supabase.com](https://supabase.com). Pick the
    São Paulo region (closest to Argentina).
 2. **SQL Editor → New query**: paste all of `supabase/schema.sql` and press **Run**.
-   Then do the same with `supabase/02-payments.sql` and `supabase/03-round2.sql`, in that order.
+   Then do the same with `supabase/02-payments.sql`, `03-round2.sql` and `04-school-year.sql`, in that order.
 3. **Authentication → Sign In / Providers**: turn **off** "Allow new users to sign up".
 4. **Authentication → Users → Add user → Create new user**: her email and a
    password, with "Auto Confirm User" ticked.
@@ -92,8 +93,8 @@ students. Commas or semicolons both work (Excel in Spanish uses `;`).
 name,level,schedule,price,notes
 Kids A1,Beginners,Tue 17:00 60 / Thu 17:00 60,25000,
 
-name,group,phone,parent_name,parent_phone,start_date,notes
-Sofía Pérez,Kids A1,,Laura Pérez,11 5555-1234,01/03/2026,
+name,group,birth_date,phone,school,school_year,contact1_name,contact1_phone,contact2_name,contact2_phone,start_date,notes
+Sofía Pérez,Kids A1,12/03/2017,,Colegio San José,Grade 3,Laura (mum),11 5555-1234,,,01/03/2026,
 ```
 Rows with problems are shown before anything is saved. Names that already
 exist are skipped, so importing the same file twice is safe.

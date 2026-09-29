@@ -14,8 +14,31 @@ export function sortedContacts(student) {
   return [...(student.student_contacts || [])].sort((a, b) => a.position - b.position)
 }
 
+// Who messages go to: the first contact with a phone (usually a parent);
+// if there's none, the student's own phone. Load the student with
+// .select('phone, student_contacts(*)') for this to work.
 export function mainContact(student) {
-  return sortedContacts(student).find((c) => c.phone) || null
+  const contact = sortedContacts(student).find((c) => c.phone)
+  if (contact) return contact
+  return student.phone ? { name: student.name, phone: student.phone } : null
+}
+
+// For CSV import: "Grade 3", "3er grado", "3" → { school_year: 3, school_year_type: 'grade' }
+// and "Year 2", "2do año", "2 ano" → { school_year: 2, school_year_type: 'year' }.
+// null if empty; throws if there's no number 1–7.
+export function parseSchoolYear(text) {
+  if (!text || !text.trim()) return null
+  const number = Number((text.match(/\d+/) || [])[0])
+  if (!(number >= 1 && number <= 7)) throw new Error(`can't read the school year "${text}" (write it like Grade 3 or Year 2)`)
+  const lower = text.toLowerCase()
+  const isYear = lower.includes('year') || lower.includes('año') || lower.includes('ano')
+  return { school_year: number, school_year_type: isYear ? 'year' : 'grade' }
+}
+
+// 3 + 'grade' → "Grade 3", 2 + 'year' → "Year 2". null if not set.
+export function formatSchoolYear(student) {
+  if (!student.school_year) return null
+  return `${student.school_year_type === 'year' ? 'Year' : 'Grade'} ${student.school_year}`
 }
 
 // Trims the typed contacts and drops completely empty rows.

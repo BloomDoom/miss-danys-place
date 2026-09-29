@@ -11,7 +11,7 @@ import BackButton from '../components/BackButton.jsx'
 
 async function loadGroup(id) {
   const group = await unwrap(
-    supabase.from('groups').select('id, name, enrollments(end_date, students(id, name, active, student_contacts(*)))').eq('id', id).single(),
+    supabase.from('groups').select('id, name, enrollments(end_date, students(id, name, phone, active, student_contacts(*)))').eq('id', id).single(),
   )
   const students = currentEnrollments(group.enrollments)
     .map((e) => e.students)

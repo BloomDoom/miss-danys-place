@@ -14,7 +14,6 @@ function loadGroups() {
 
 // Quick-add: after saving, the form clears but stays open (keeping the
 // group and start date), so you can type a whole class in a row.
-// Only the essentials are visible; the rest is under "More details".
 export default function StudentNew() {
   const [params] = useSearchParams()
   const result = useLoad(loadGroups, [])
@@ -29,7 +28,7 @@ export default function StudentNew() {
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
-    if (!hasPhone(contacts)) return setError('Add at least one contact with a phone number.')
+    if (!values.phone.trim() && !hasPhone(contacts)) return setError('Add a phone: the student’s own, or a contact’s.')
     setBusy(true)
     try {
       const student = await unwrap(supabase.from('students').insert(cleanStudent(values)).select().single())
@@ -40,7 +39,7 @@ export default function StudentNew() {
         )
       }
       setAdded([student, ...added])
-      setValues({ ...EMPTY_STUDENT, start_date: values.start_date })
+      setValues({ ...EMPTY_STUDENT, start_date: values.start_date, school_year_type: values.school_year_type })
       setContacts([EMPTY_CONTACT])
       nameRef.current?.focus()
       window.scrollTo(0, 0)
@@ -79,7 +78,6 @@ export default function StudentNew() {
             contacts={contacts}
             onContactsChange={setContacts}
             nameRef={nameRef}
-            compact
           />
           {error && <p className="error" role="alert">{error}</p>}
           <button className="btn-primary" disabled={busy}>

@@ -1077,9 +1077,6 @@ h2 {
 .contacts-editor .slot-box {
   margin-top: 0.5rem;
 }
-.more-details {
-  margin-bottom: 1rem;
-}
 
 /* With big text the pinned bar would cover the list: let it scroll away,
    and stack search and "+ Add". */

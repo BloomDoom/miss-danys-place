@@ -5,7 +5,7 @@ import { unwrap, useLoad } from '../lib/useLoad.js'
 import { formatDate, todayISO } from '../lib/format.js'
 import { currentEnrollments } from '../lib/groups.js'
 import { callLink, whatsappLink } from '../lib/phone.js'
-import { EMPTY_CONTACT, ageOn, hasPhone, saveContacts, sortedContacts } from '../lib/students.js'
+import { EMPTY_CONTACT, ageOn, formatSchoolYear, hasPhone, saveContacts, sortedContacts } from '../lib/students.js'
 import { saveErrorMessage } from '../lib/errors.js'
 import { useToast } from '../components/Toast.jsx'
 import LoadState from '../components/LoadState.jsx'
@@ -63,6 +63,8 @@ function ViewStudent({ student, onEdit, reload }) {
   const groups = currentEnrollments(student.enrollments).map((e) => e.groups)
   const contacts = sortedContacts(student)
   const age = ageOn(student.birth_date)
+  // "Colegio San José · Grade 3"
+  const school = [student.school, formatSchoolYear(student)].filter(Boolean).join(' · ')
 
   async function setActive(active) {
     setError('')
@@ -104,18 +106,15 @@ function ViewStudent({ student, onEdit, reload }) {
             ))}
       </p>
 
-      {(age !== null || student.school) && (
-        <p>
-          {age !== null && `${age} years old (born ${formatDate(student.birth_date)})`}
-          {age !== null && student.school && ' · '}
-          {student.school}
-        </p>
-      )}
+      {age !== null && <p>{age} years old (born {formatDate(student.birth_date)})</p>}
+      {school && <p>{school}</p>}
 
-      {contacts.length === 0 ? (
-        <p className="empty">No contacts yet. Tap “Edit details” to add a phone number.</p>
-      ) : (
-        contacts.map((c) => <Contact key={c.id} label={c.name} phone={c.phone} />)
+      {student.phone && <Contact label={`${student.name.split(' ')[0]}’s phone`} phone={student.phone} />}
+      {contacts.map((c) => (
+        <Contact key={c.id} label={c.name} phone={c.phone} />
+      ))}
+      {!student.phone && contacts.length === 0 && (
+        <p className="empty">No phone yet. Tap “Edit details” to add one.</p>
       )}
 
       <StudentAttendance student={student} />
@@ -171,7 +170,10 @@ function EditStudent({ student, groups, onDone }) {
   const [values, setValues] = useState({
     name: student.name,
     birth_date: student.birth_date,
+    phone: student.phone,
     school: student.school,
+    school_year: student.school_year ?? '',
+    school_year_type: student.school_year_type || 'grade',
     notes: student.notes,
     start_date: student.start_date,
   })
@@ -190,7 +192,7 @@ function EditStudent({ student, groups, onDone }) {
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
-    if (!hasPhone(contacts)) return setError('Add at least one contact with a phone number.')
+    if (!(values.phone || '').trim() && !hasPhone(contacts)) return setError('Add a phone: the student’s own, or a contact’s.')
     setBusy(true)
     try {
       const clean = cleanStudent(values)

@@ -5,7 +5,7 @@ import { unwrap } from '../lib/useLoad.js'
 import { parseCsv } from '../lib/csv.js'
 import { currentMonthISO, formatMoney, parseAmount, parseDate, todayISO } from '../lib/format.js'
 import { normalize } from '../lib/groups.js'
-import { cleanContacts, saveContacts } from '../lib/students.js'
+import { cleanContacts, parseSchoolYear, saveContacts } from '../lib/students.js'
 import { loadErrorMessage, saveErrorMessage } from '../lib/errors.js'
 
 // Bulk import of groups and students from CSV files, for loading the
@@ -16,9 +16,9 @@ const EXAMPLES = {
   groups: `name,level,schedule,price,notes
 Kids A1,Beginners,Tue 17:00 60 / Thu 17:00 60,25000,
 Adults Advanced,,Wed 19:00 90,30000,Book: Headway 4`,
-  students: `name,group,birth_date,school,contact1_name,contact1_phone,contact2_name,contact2_phone,start_date,notes
-Sofía Pérez,Kids A1,12/03/2017,Colegio San José,Laura (mum),11 5555-1234,Carlos (dad),11 5555-9876,01/03/2026,
-Martín Gómez,Adults Advanced,04/07/1990,,Martín,11 4444-9876,,,15/03/2026,Pays by transfer`,
+  students: `name,group,birth_date,phone,school,school_year,contact1_name,contact1_phone,contact2_name,contact2_phone,start_date,notes
+Sofía Pérez,Kids A1,12/03/2017,,Colegio San José,Grade 3,Laura (mum),11 5555-1234,Carlos (dad),11 5555-9876,01/03/2026,
+Martín Gómez,Adults Advanced,04/07/1990,11 4444-9876,,,,,,,15/03/2026,Pays by transfer`,
 }
 
 // First three letters of the day, in English or Spanish (no accents).
@@ -89,21 +89,25 @@ async function checkStudents(rows) {
       if (seen.has(normalize(row.name))) item.skip = 'already exists'
       seen.add(normalize(row.name))
 
-      // New columns contact1_… / contact2_…; older files used phone and parent_….
+      // Contacts: contact1_… / contact2_… (older files used parent_…).
+      // The "phone" column is the student's own phone.
+      const schoolYear = parseSchoolYear(row.school_year)
       const contacts = cleanContacts([
         { name: row.contact1_name, phone: row.contact1_phone },
         { name: row.contact2_name, phone: row.contact2_phone },
-        { name: row.name, phone: row.phone },
         { name: row.parent_name || row.guardian_name, phone: row.parent_phone || row.guardian_phone },
       ])
-      item.detail = [row.group || 'No group', contacts.some((c) => c.phone) ? null : 'no phone yet'].filter(Boolean).join(' · ')
+      item.detail = [row.group || 'No group', row.phone || contacts.some((c) => c.phone) ? null : 'no phone yet'].filter(Boolean).join(' · ')
       item.data = {
         groupId,
         contacts,
         student: {
           name: row.name,
           birth_date: birthDate,
+          phone: row.phone || null,
           school: row.school || null,
+          school_year: schoolYear?.school_year ?? null,
+          school_year_type: schoolYear?.school_year_type ?? null,
           notes: row.notes || null,
           start_date: startDate,
         },

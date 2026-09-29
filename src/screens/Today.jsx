@@ -33,7 +33,7 @@ async function loadDay(date) {
         )
       : [],
     loadPendingMakeups(),
-    unwrap(supabase.from('students').select('id, name, birth_date, student_contacts(*)').eq('active', true).not('birth_date', 'is', null)),
+    unwrap(supabase.from('students').select('id, name, phone, birth_date, student_contacts(*)').eq('active', true).not('birth_date', 'is', null)),
     loadSettings(),
   ])
   return {
