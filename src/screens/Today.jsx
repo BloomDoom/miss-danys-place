@@ -8,6 +8,7 @@ import { loadPendingMakeups } from '../lib/makeups.js'
 import { saveErrorMessage } from '../lib/errors.js'
 import { useToast } from '../components/Toast.jsx'
 import LoadState from '../components/LoadState.jsx'
+import EmptyState from '../components/EmptyState.jsx'
 import MakeupBanner from '../components/MakeupBanner.jsx'
 import Birthdays from '../components/Birthdays.jsx'
 import { asset } from '../components/Doodle.jsx'
@@ -59,6 +60,18 @@ function dayTitle(date) {
   return weekdayName(isoWeekday(date))
 }
 
+// The empty day, said kindly. She teaches Tuesday to Friday.
+function NoClasses({ date }) {
+  const weekday = isoWeekday(date)
+  if (weekday >= 6) {
+    return <EmptyState emoji="☀️" title="It’s the weekend!">No classes. Time to rest, Ms Dany.</EmptyState>
+  }
+  if (date === todayISO()) {
+    return <EmptyState emoji="🌷" title="No classes today">Enjoy your free day! Use the arrows to see other days.</EmptyState>
+  }
+  return <EmptyState emoji="🌿" title={`No classes on ${weekdayName(weekday)}`}>A free day. Use the arrows to see other days.</EmptyState>
+}
+
 export default function Today() {
   // The day being shown lives in the URL (/?date=2026-09-29), so coming
   // back from a class returns to the same day.
@@ -94,7 +107,7 @@ export default function Today() {
       {sessions && (
         <>
           {sessions.length === 0 ? (
-            <p className="empty">No classes on this day. Use the arrows to see other days.</p>
+            <NoClasses date={date} />
           ) : (
             <ul className="card-list">
               {sessions.map((s) => (

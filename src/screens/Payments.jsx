@@ -4,7 +4,9 @@ import { supabase } from '../lib/supabase.js'
 import { unwrap, useLoad } from '../lib/useLoad.js'
 import { addMonths, currentMonthISO, formatMoney, formatMonth } from '../lib/format.js'
 import { METHODS, STATUS_LABELS, ensureCharges, loadSettings, sortByStatus, totalsByMethod, withStatus } from '../lib/payments.js'
+import { nameClass } from '../lib/students.js'
 import LoadState from '../components/LoadState.jsx'
+import EmptyState from '../components/EmptyState.jsx'
 import PayPanel from '../components/PayPanel.jsx'
 
 async function loadMonth(month) {
@@ -14,7 +16,7 @@ async function loadMonth(month) {
   const charges = await unwrap(
     supabase
       .from('charges')
-      .select('*, students(id, name), groups(id, name), payments(*)')
+      .select('*, students(id, name, sex), groups(id, name), payments(*)')
       .eq('month', month)
       .is('deleted_at', null),
   )
@@ -61,15 +63,15 @@ export default function Payments() {
       <LoadState {...result} />
 
       {result.data?.skipped && (
-        <p className="empty">No fees in {formatMonth(month)}. You can change this in Settings.</p>
+        <EmptyState emoji="🏖️" title={`No fees in ${formatMonth(month)}`}>Holidays! You can change this in Settings.</EmptyState>
       )}
 
       {charges && !result.data.skipped && (
         <>
           {charges.length === 0 ? (
-            <p className="empty">
-              No fees this month yet. Fees appear here for students who are in a group that has a price.
-            </p>
+            <EmptyState emoji="💰" title="No fees this month yet">
+              Fees appear here for students in a group that has a price.
+            </EmptyState>
           ) : (
             <section className="summary">
               <p className="big-number">
@@ -98,7 +100,7 @@ export default function Payments() {
                 {/* The whole top (name, group, status, amount) opens the student */}
                 <Link to={`/students/${c.students.id}`} className="charge-top">
                   <span className="charge-name">
-                    <span className="card-title">{c.students.name}</span>
+                    <span className={`card-title ${nameClass(c.students)}`}>{c.students.name}</span>
                     <span className="muted">{c.groups.name}</span>
                   </span>
                   <span className="charge-right">

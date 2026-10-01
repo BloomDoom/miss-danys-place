@@ -10,7 +10,7 @@ import { todayISO } from './format.js'
 // absences points at `sessions` twice (the missed class and the make-up
 // class), so we say which link we mean by the constraint name.
 const FIELDS = `*,
-  students(id, name, active),
+  students(id, name, sex, active),
   session:sessions!absences_session_id_fkey(id, date, start_time, group_id, groups(id, name)),
   makeup:sessions!absences_makeup_session_id_fkey(id, date, start_time, cancelled, groups(id, name))`
 

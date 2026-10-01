@@ -8,3 +8,7 @@ dev-dist
 
 .DS_Store
 Thumbs.db
+
+# Student data from the paper sheets (personal info; the repo is public)
+students/
+prompt.txt

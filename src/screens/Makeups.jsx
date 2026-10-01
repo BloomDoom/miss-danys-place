@@ -1,6 +1,7 @@
 import { useLoad } from '../lib/useLoad.js'
 import { loadPendingMakeups, makeupState } from '../lib/makeups.js'
 import LoadState from '../components/LoadState.jsx'
+import EmptyState from '../components/EmptyState.jsx'
 import MakeupCard from '../components/MakeupCard.jsx'
 import BackButton from '../components/BackButton.jsx'
 
@@ -30,7 +31,7 @@ export default function Makeups() {
       <LoadState {...result} />
 
       {result.data && all.length === 0 && (
-        <p className="empty">No make-ups pending. When you mark someone absent, they’ll show up here.</p>
+        <EmptyState emoji="🎉" title="All caught up!">No make-ups pending. When you mark someone absent, they’ll show up here.</EmptyState>
       )}
       {needsAnswer.length > 0 && (
         <section className="section">

@@ -4,7 +4,9 @@ import { supabase } from '../lib/supabase.js'
 import { unwrap, useLoad } from '../lib/useLoad.js'
 import { currentEnrollments, normalize } from '../lib/groups.js'
 import { loadPendingMakeups } from '../lib/makeups.js'
+import { nameClass } from '../lib/students.js'
 import LoadState from '../components/LoadState.jsx'
+import EmptyState from '../components/EmptyState.jsx'
 import MakeupBanner from '../components/MakeupBanner.jsx'
 
 async function loadStudents() {
@@ -80,9 +82,9 @@ export default function Students() {
           </div>
 
           {result.data.students.length === 0 ? (
-            <p className="empty">No students yet. Tap “+ Add” to add your first ones.</p>
+            <EmptyState emoji="👋" title="No students yet">Tap “+ Add” to welcome your first students.</EmptyState>
           ) : students.length === 0 ? (
-            <p className="empty">No students match. Try another name or group.</p>
+            <EmptyState emoji="🔍" title="Nobody found">Check the spelling, or pick another group.</EmptyState>
           ) : (
             // Grouped by first letter (A, B, C…) so the list is easy to scan.
             byLetter(students).map(([letter, list]) => (
@@ -92,7 +94,7 @@ export default function Students() {
                   {list.map((s) => (
                     <li key={s.id}>
                       <Link to={`/students/${s.id}`} className="card">
-                        <span className="card-title">{s.name}</span>
+                        <span className={`card-title ${nameClass(s)}`}>{s.name}</span>
                         <span className="muted">
                           {currentEnrollments(s.enrollments).map((e) => e.groups.name).join(', ') || 'No group'}
                         </span>

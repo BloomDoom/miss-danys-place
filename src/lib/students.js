@@ -41,6 +41,21 @@ export function formatSchoolYear(student) {
   return `${student.school_year_type === 'year' ? 'Year' : 'Grade'} ${student.school_year}`
 }
 
+// Girls' names in pink, boys' in blue, like on her paper sheets.
+// Returns a CSS class name ('' if not set). Needs `sex` in the select.
+export function nameClass(student) {
+  return student?.sex === 'f' ? 'name-girl' : student?.sex === 'm' ? 'name-boy' : ''
+}
+
+// Reads "f", "girl", "niña", "m", "boy", "niño"... from a CSV. null if empty.
+export function parseSex(text) {
+  const t = (text || '').trim().toLowerCase()
+  if (!t) return null
+  if (['f', 'girl', 'female', 'niña', 'nena', 'mujer'].includes(t)) return 'f'
+  if (['m', 'boy', 'male', 'niño', 'nene', 'varón', 'varon', 'hombre'].includes(t)) return 'm'
+  throw new Error(`can't read "${text}" (write girl or boy)`)
+}
+
 // Trims the typed contacts and drops completely empty rows.
 export function cleanContacts(contacts) {
   return contacts

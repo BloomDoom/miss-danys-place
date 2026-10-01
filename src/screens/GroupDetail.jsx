@@ -9,14 +9,16 @@ import { loadSessions, sessionPath } from '../lib/sessions.js'
 import { activeSlots, currentEnrollments, priceForMonth } from '../lib/groups.js'
 import { saveErrorMessage } from '../lib/errors.js'
 import { useToast } from '../components/Toast.jsx'
+import { nameClass } from '../lib/students.js'
 import LoadState from '../components/LoadState.jsx'
+import EmptyState from '../components/EmptyState.jsx'
 import SlotFields, { NEW_SLOT, slotRows } from '../components/SlotFields.jsx'
 
 function loadGroup(id) {
   return unwrap(
     supabase
       .from('groups')
-      .select('*, group_slots(*), group_prices(*), enrollments(id, end_date, students(id, name, active))')
+      .select('*, group_slots(*), group_prices(*), enrollments(id, end_date, students(id, name, sex, active))')
       .eq('id', id)
       .single(),
   )
@@ -266,11 +268,11 @@ function Students({ group }) {
   return (
     <section className="section">
       <h2>Students ({students.length})</h2>
-      {students.length === 0 && <p className="empty">No students in this group yet.</p>}
+      {students.length === 0 && <EmptyState emoji="👋" title="No students in this group yet" />}
       <ul className="row-list">
         {students.map((s) => (
           <li key={s.id}>
-            <Link to={`/students/${s.id}`} className="row-link">{s.name} ›</Link>
+            <Link to={`/students/${s.id}`} className="row-link"><span className={nameClass(s)}>{s.name}</span> ›</Link>
           </li>
         ))}
       </ul>

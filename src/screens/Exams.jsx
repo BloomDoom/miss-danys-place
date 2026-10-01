@@ -7,6 +7,7 @@ import { LEVELS, RESULTS, examYear, groupByLevel } from '../lib/exams.js'
 import { saveErrorMessage } from '../lib/errors.js'
 import { useToast } from '../components/Toast.jsx'
 import LoadState from '../components/LoadState.jsx'
+import EmptyState from '../components/EmptyState.jsx'
 
 async function loadExams() {
   const [exams, students] = await Promise.all([
@@ -61,7 +62,7 @@ export default function Exams() {
           )}
 
           {exams.length === 0 && !adding && (
-            <p className="empty">No exams in {year}. Tap “Add exam” for each student who will sit the Trinity exam.</p>
+            <EmptyState emoji="📚" title={`No exams in ${year} yet`}>Tap “Add exam” for each student who will sit the Trinity exam.</EmptyState>
           )}
 
           {groupByLevel(exams).map(([level, list]) => (

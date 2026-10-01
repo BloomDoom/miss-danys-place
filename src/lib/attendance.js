@@ -23,7 +23,7 @@ export async function loadAttendance(from, to, groupIds = null) {
 
   const ids = [...new Set(sessions.map((s) => s.group_id))]
   const [enrollments, absences] = await Promise.all([
-    unwrap(supabase.from('enrollments').select('student_id, group_id, start_date, end_date, students(id, name, active)').in('group_id', ids)),
+    unwrap(supabase.from('enrollments').select('student_id, group_id, start_date, end_date, students(id, name, sex, active)').in('group_id', ids)),
     unwrap(supabase.from('absences').select('session_id, student_id').in('session_id', sessions.map((s) => s.id)).is('deleted_at', null)),
   ])
   return computeAttendance(sessions, enrollments, absences)

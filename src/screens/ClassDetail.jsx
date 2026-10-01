@@ -7,7 +7,9 @@ import { ensureSaved, loadSession, sessionPath, studentsOn, updateSession } from
 import { loadMakeupsFor, updateMakeup } from '../lib/makeups.js'
 import { saveErrorMessage } from '../lib/errors.js'
 import { useToast } from '../components/Toast.jsx'
+import { nameClass } from '../lib/students.js'
 import LoadState from '../components/LoadState.jsx'
+import EmptyState from '../components/EmptyState.jsx'
 import { useGoBack } from '../components/BackButton.jsx'
 import GiveRewards from '../components/GiveRewards.jsx'
 import Doodle from '../components/Doodle.jsx'
@@ -17,7 +19,7 @@ import Doodle from '../components/Doodle.jsx'
 async function loadClass(params) {
   const session = await loadSession(params)
   const [enrollments, absences, makeups] = await Promise.all([
-    unwrap(supabase.from('enrollments').select('start_date, end_date, students(id, name, active)').eq('group_id', session.group_id)),
+    unwrap(supabase.from('enrollments').select('start_date, end_date, students(id, name, sex, active)').eq('group_id', session.group_id)),
     session.id ? unwrap(supabase.from('absences').select('*').eq('session_id', session.id).is('deleted_at', null)) : [],
     // Students from other classes coming here to make up an absence.
     // (Only saved classes can have make-ups booked into them.)
@@ -137,7 +139,7 @@ function Attendance({ session, students, absentIds, makeups, reload, onSaved }) 
   }
 
   if (everyone.length === 0) {
-    return <p className="empty">No students in this group on this day. Add students from the Students tab.</p>
+    return <EmptyState emoji="🪑" title="No students in this class">Add students from the Students tab.</EmptyState>
   }
 
   const presentCount = everyone.length - absent.size
@@ -154,7 +156,7 @@ function Attendance({ session, students, absentIds, makeups, reload, onSaved }) 
             <li key={s.id}>
               <button className={`roster-row ${isAbsent ? 'absent' : ''}`} aria-pressed={isAbsent} onClick={() => toggle(s.id)}>
                 <span className="roster-name">
-                  {s.name}
+                  <span className={nameClass(s)}>{s.name}</span>
                   {makeup && (
                     <span className="makeup-label">
                       Make-up · from {makeup.session.groups.name} ({formatDay(makeup.session.date)})

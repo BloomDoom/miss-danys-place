@@ -1744,3 +1744,64 @@ a.charge-top .charge-name {
 [data-big-text] a.charge-top {
   flex-wrap: wrap;
 }
+
+/* ───────── Friendly empty messages (see EmptyState.jsx) */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 1.75rem 1rem;
+}
+.empty-emoji {
+  font-size: 2.6rem;
+  line-height: 1.2;
+}
+.empty-state p {
+  margin: 0;
+}
+.empty-title {
+  color: var(--text);
+  font-weight: 800;
+  font-size: 1.15em;
+}
+.empty-text {
+  color: var(--muted);
+}
+
+/* ───────── Girls' names pink, boys' blue (like the ink on her sheets).
+   Darker than "light" pink/blue so they stay readable (5:1 or more). */
+:root {
+  --girl: #c2185b;
+  --boy: #1f6fb2;
+}
+.name-girl {
+  color: var(--girl);
+}
+.name-boy {
+  color: var(--boy);
+}
+.sex-picker {
+  margin-top: 0.25rem;
+}
+.sex-picker .btn-primary,
+.sex-picker .btn-secondary {
+  margin-top: 0;
+}
+.sex-picker .picked-f {
+  background: var(--girl);
+}
+.sex-picker .picked-m {
+  background: var(--boy);
+}
+
+/* ───────── Home button: the round house from the logo instead of an icon */
+.home-circle.has-house {
+  overflow: hidden;
+  background: var(--yellow-soft);
+}
+.home-circle.has-house img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

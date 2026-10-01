@@ -5,7 +5,7 @@ import { unwrap } from '../lib/useLoad.js'
 import { parseCsv } from '../lib/csv.js'
 import { currentMonthISO, formatMoney, parseAmount, parseDate, todayISO } from '../lib/format.js'
 import { normalize } from '../lib/groups.js'
-import { cleanContacts, parseSchoolYear, saveContacts } from '../lib/students.js'
+import { cleanContacts, parseSchoolYear, parseSex, saveContacts } from '../lib/students.js'
 import { loadErrorMessage, saveErrorMessage } from '../lib/errors.js'
 
 // Bulk import of groups and students from CSV files, for loading the
@@ -16,9 +16,9 @@ const EXAMPLES = {
   groups: `name,level,schedule,price,notes
 Kids A1,Beginners,Tue 17:00 60 / Thu 17:00 60,25000,
 Adults Advanced,,Wed 19:00 90,30000,Book: Headway 4`,
-  students: `name,group,birth_date,phone,school,school_year,contact1_name,contact1_phone,contact2_name,contact2_phone,start_date,notes
-Sofía Pérez,Kids A1,12/03/2017,,Colegio San José,Grade 3,Laura (mum),11 5555-1234,Carlos (dad),11 5555-9876,01/03/2026,
-Martín Gómez,Adults Advanced,04/07/1990,11 4444-9876,,,,,,,15/03/2026,Pays by transfer`,
+  students: `name,sex,group,birth_date,phone,school,school_year,contact1_name,contact1_phone,contact2_name,contact2_phone,start_date,notes
+Sofía Pérez,girl,Kids A1,12/03/2017,,Colegio San José,Grade 3,Laura (mum),11 5555-1234,Carlos (dad),11 5555-9876,01/03/2026,
+Martín Gómez,boy,Adults Advanced,04/07/1990,11 4444-9876,,,,,,,15/03/2026,Pays by transfer`,
 }
 
 // First three letters of the day, in English or Spanish (no accents).
@@ -103,6 +103,7 @@ async function checkStudents(rows) {
         contacts,
         student: {
           name: row.name,
+          sex: parseSex(row.sex),
           birth_date: birthDate,
           phone: row.phone || null,
           school: row.school || null,
@@ -210,7 +211,7 @@ export default function Import() {
         {kind === 'groups' ? (
           <p className="muted">Schedule: day, time and minutes, several separated by “/”. The price starts this month.</p>
         ) : (
-          <p className="muted">Group must match a group’s name. Dates as DD/MM/YYYY. Empty columns are fine; older files with phone, parent_name and parent_phone also work.</p>
+          <p className="muted">Group must match a group’s name. Sex: girl or boy. Dates as DD/MM/YYYY. Empty columns are fine; older files with phone, parent_name and parent_phone also work.</p>
         )}
         <label className="btn-secondary file-button">
           Choose CSV file

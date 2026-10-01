@@ -5,7 +5,7 @@ import { unwrap, useLoad } from '../lib/useLoad.js'
 import { formatDate, todayISO } from '../lib/format.js'
 import { currentEnrollments } from '../lib/groups.js'
 import { callLink, whatsappLink } from '../lib/phone.js'
-import { EMPTY_CONTACT, ageOn, formatSchoolYear, hasPhone, saveContacts, sortedContacts } from '../lib/students.js'
+import { EMPTY_CONTACT, ageOn, nameClass, formatSchoolYear, hasPhone, saveContacts, sortedContacts } from '../lib/students.js'
 import { saveErrorMessage } from '../lib/errors.js'
 import { useToast } from '../components/Toast.jsx'
 import LoadState from '../components/LoadState.jsx'
@@ -88,7 +88,7 @@ function ViewStudent({ student, onEdit, reload }) {
   return (
     <>
       <div className="doodle-wrap">
-        <h1>
+        <h1 className={nameClass(student)}>
           {student.name}
           {!student.active && <span className="badge">Inactive</span>}
         </h1>
@@ -169,6 +169,7 @@ function Contact({ label, phone }) {
 function EditStudent({ student, groups, onDone }) {
   const [values, setValues] = useState({
     name: student.name,
+    sex: student.sex || '',
     birth_date: student.birth_date,
     phone: student.phone,
     school: student.school,

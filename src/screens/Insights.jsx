@@ -3,6 +3,7 @@ import { useLoad } from '../lib/useLoad.js'
 import { addDays, addMonths, currentMonthISO, formatMonth, todayISO } from '../lib/format.js'
 import { formatRate, loadAttendance } from '../lib/attendance.js'
 import LoadState from '../components/LoadState.jsx'
+import EmptyState from '../components/EmptyState.jsx'
 import BackButton from '../components/BackButton.jsx'
 
 // Last day of a month: the day before the 1st of the next month.
@@ -34,7 +35,7 @@ export default function Insights() {
       <LoadState {...result} />
 
       {data && data.overall.expected === 0 && (
-        <p className="empty">No attendance saved in {formatMonth(month)} yet. Numbers appear after you save attendance in your classes.</p>
+        <EmptyState emoji="📊" title="Nothing to show yet">Numbers for {formatMonth(month)} appear after you save attendance in your classes.</EmptyState>
       )}
 
       {data && data.overall.expected > 0 && (

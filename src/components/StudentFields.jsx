@@ -7,7 +7,7 @@ import { EMPTY_CONTACT } from '../lib/students.js'
 // start date, notes, and the contacts at the very bottom.
 
 export const EMPTY_STUDENT = {
-  name: '', birth_date: '', phone: '', school: '', school_year: '', school_year_type: 'grade', notes: '',
+  name: '', sex: '', birth_date: '', phone: '', school: '', school_year: '', school_year_type: 'grade', notes: '',
 }
 
 // Ready for the database: empty text becomes null, the school year a
@@ -36,6 +36,25 @@ export default function StudentFields({ values, onChange, contacts, onContactsCh
         Name
         <input {...field('name')} ref={nameRef} autoCapitalize="words" required />
       </label>
+      {/* Two big buttons instead of a dropdown: one tap. Tapping the chosen one again clears it. */}
+      <fieldset>
+        <legend>
+          Girl or boy <span className="optional">(pink or blue name)</span>
+        </legend>
+        <div className="btn-row sex-picker">
+          {[['f', 'Girl'], ['m', 'Boy']].map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              className={values.sex === key ? `btn-primary picked-${key}` : 'btn-secondary'}
+              aria-pressed={values.sex === key}
+              onClick={() => onChange({ ...values, sex: values.sex === key ? '' : key })}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </fieldset>
       <label>
         Birth date <span className="optional">(for birthdays and exams)</span>
         <input {...field('birth_date')} type="date" />

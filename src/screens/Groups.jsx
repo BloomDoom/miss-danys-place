@@ -4,6 +4,7 @@ import { unwrap, useLoad } from '../lib/useLoad.js'
 import { formatMoney } from '../lib/format.js'
 import { currentEnrollments, priceForMonth, slotsSummary } from '../lib/groups.js'
 import LoadState from '../components/LoadState.jsx'
+import EmptyState from '../components/EmptyState.jsx'
 
 function loadGroups() {
   return unwrap(
@@ -39,7 +40,7 @@ export default function Groups() {
       {groups && (
         <>
           {active.length === 0 ? (
-            <p className="empty">No groups yet. Tap “Add group” to create your first class.</p>
+            <EmptyState emoji="🏡" title="No groups yet">Tap “Add group” to create your first class.</EmptyState>
           ) : (
             <GroupList groups={active} />
           )}
