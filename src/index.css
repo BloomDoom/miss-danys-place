@@ -81,8 +81,7 @@ h1 {
   max-width: 40rem;
   margin: 0 auto;
   padding: 1rem;
-  /* Leave room so the tab bar never covers the last item. */
-  padding-bottom: calc(var(--tab-bar-height) + var(--home-raise) + env(safe-area-inset-bottom) + 1.5rem);
+  /* The room for the tab bar is in .screen-footer, right after it. */
 }
 
 .screen.center {
@@ -467,6 +466,40 @@ label.btn-secondary {
 }
 .slot-fields label:first-child {
   grid-column: 1 / -1; /* the day takes the full width */
+}
+
+/* Mo Tu We Th Fr Sa Su: tap each day the class happens */
+.day-picker {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.35rem;
+  margin: 0 0 1rem;
+  padding: 0;
+  border: none;
+}
+.day-picker legend {
+  margin-bottom: 0.35rem;
+  padding: 0;
+  font-weight: 600;
+}
+.day-picker button {
+  min-height: var(--tap);
+  padding: 0;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 700;
+  cursor: pointer;
+}
+.day-picker button[aria-pressed='true'] {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-text);
+}
+[data-big-text] .day-picker {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .big-number {
@@ -982,7 +1015,7 @@ h2 {
 
 /* data-big-text is set by src/lib/bigText.js when the text size is large.
    Everything goes into one column and nothing sticks over the content. */
-[data-big-text] .screen {
+[data-big-text] .screen-footer {
   padding-bottom: calc(var(--tab-bar-height) + var(--home-raise) + env(safe-area-inset-bottom) + 4rem);
 }
 /* Titles grow less than body text, or a title alone fills the screen */
@@ -1654,4 +1687,60 @@ textarea {
 .setup-steps .muted {
   display: block;
   font-size: 0.95rem;
+}
+
+/* ───────── End of every screen, typing */
+/* "‹ Back" / "↑ Top", then room so the tab bar never covers the last
+   item (with extra, so it's never a tight fit). */
+.screen-footer {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 1rem 1rem calc(var(--tab-bar-height) + var(--home-raise) + env(safe-area-inset-bottom) + 3rem);
+  border-top: 1px solid var(--border);
+}
+[data-big-text] .screen-footer {
+  padding-left: min(1rem, 16px);
+  padding-right: min(1rem, 16px);
+}
+[data-big-text] .screen-footer .btn-row {
+  flex-direction: column;
+}
+/* While typing (keyboard open) the tab bar and its room go away, so they
+   can't cover the field or the Save button. See src/lib/keyboard.js. */
+[data-typing] .tab-bar,
+[data-typing] .toast {
+  display: none;
+}
+[data-typing] .screen-footer {
+  padding-bottom: 3rem;
+}
+[data-typing] .save-bar {
+  bottom: 0;
+}
+
+/* Payments: name, group, status and amount are one tap area that opens
+   the student; "Mark paid" stays below, apart. */
+a.charge-top {
+  align-items: center;
+  margin: -0.5rem -0.5rem 0;
+  padding: 0.5rem;
+  border-radius: 14px;
+  color: var(--text);
+  text-decoration: none;
+}
+a.charge-top:active {
+  background: var(--pressed);
+}
+a.charge-top .charge-name {
+  flex: 1;
+  min-width: 0;
+}
+.card-chevron {
+  align-self: center;
+  color: var(--muted);
+  font-size: 1.6rem;
+  line-height: 1;
+}
+[data-big-text] a.charge-top {
+  flex-wrap: wrap;
 }

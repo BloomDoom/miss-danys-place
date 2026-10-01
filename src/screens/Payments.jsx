@@ -95,16 +95,18 @@ export default function Payments() {
           <ul className="card-list">
             {charges.map((c) => (
               <li key={c.id} className={`card charge-card status-${c.status}`}>
-                <div className="charge-top">
-                  <Link to={`/students/${c.students.id}`} className="charge-name">
-                    <span className="card-title">{c.students.name} ›</span>
+                {/* The whole top (name, group, status, amount) opens the student */}
+                <Link to={`/students/${c.students.id}`} className="charge-top">
+                  <span className="charge-name">
+                    <span className="card-title">{c.students.name}</span>
                     <span className="muted">{c.groups.name}</span>
-                  </Link>
+                  </span>
                   <span className="charge-right">
                     <span className={`chip chip-${c.status}`}>{STATUS_LABELS[c.status]}</span>
                     <span>{c.status === 'paid' ? formatMoney(c.amount) : `${formatMoney(c.balance)} left`}</span>
                   </span>
-                </div>
+                  <span className="card-chevron" aria-hidden="true">›</span>
+                </Link>
 
                 {c.status !== 'paid' &&
                   (openId === c.id ? (

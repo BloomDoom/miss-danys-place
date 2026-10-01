@@ -10,7 +10,7 @@ import { activeSlots, currentEnrollments, priceForMonth } from '../lib/groups.js
 import { saveErrorMessage } from '../lib/errors.js'
 import { useToast } from '../components/Toast.jsx'
 import LoadState from '../components/LoadState.jsx'
-import SlotFields, { NEW_SLOT } from '../components/SlotFields.jsx'
+import SlotFields, { NEW_SLOT, slotRows } from '../components/SlotFields.jsx'
 
 function loadGroup(id) {
   return unwrap(
@@ -86,9 +86,10 @@ function ClassTimes({ group, reload }) {
   async function add(e) {
     e.preventDefault()
     setError('')
+    if (newSlot.weekdays.length === 0) return setError('Pick at least one day.')
     const ok = await save(
-      () => unwrap(supabase.from('group_slots').insert({ ...newSlot, group_id: group.id })),
-      { reload, showToast, setError, message: 'Class time added' },
+      () => unwrap(supabase.from('group_slots').insert(slotRows(newSlot, group.id))),
+      { reload, showToast, setError, message: newSlot.weekdays.length > 1 ? 'Class times added' : 'Class time added' },
     )
     if (ok) {
       setAdding(false)

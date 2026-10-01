@@ -5,7 +5,7 @@ import { unwrap } from '../lib/useLoad.js'
 import { currentMonthISO, parseAmount } from '../lib/format.js'
 import { saveErrorMessage } from '../lib/errors.js'
 import { useToast } from '../components/Toast.jsx'
-import SlotFields, { NEW_SLOT } from '../components/SlotFields.jsx'
+import SlotFields, { NEW_SLOT, slotRows } from '../components/SlotFields.jsx'
 
 export default function GroupNew() {
   const navigate = useNavigate()
@@ -21,6 +21,7 @@ export default function GroupNew() {
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
+    if (slots.some((s) => s.weekdays.length === 0)) return setError('Pick at least one day for each class time.')
     setBusy(true)
     try {
       // 1. the group itself; .select().single() gives us back its new id
@@ -31,10 +32,8 @@ export default function GroupNew() {
           .select()
           .single(),
       )
-      // 2. its weekly class times
-      if (slots.length > 0) {
-        await unwrap(supabase.from('group_slots').insert(slots.map((s) => ({ ...s, group_id: group.id }))))
-      }
+      // 2. its weekly class times: one row per day
+      await unwrap(supabase.from('group_slots').insert(slots.flatMap((s) => slotRows(s, group.id))))
       // 3. its price, starting this month
       const amount = parseAmount(price)
       if (amount !== null) {
@@ -86,7 +85,7 @@ export default function GroupNew() {
           </div>
         ))}
         <button type="button" className="btn-secondary" onClick={() => setSlots([...slots, NEW_SLOT])}>
-          + Add another class time
+          + Another class time (if a day is at a different time)
         </button>
 
         <label className="section">
