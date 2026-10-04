@@ -20,7 +20,10 @@ import Makeups from './screens/Makeups.jsx'
 import Exams from './screens/Exams.jsx'
 import ExamEdit from './screens/ExamEdit.jsx'
 import Insights from './screens/Insights.jsx'
-import TabBar from './components/TabBar.jsx'
+import TabBar, { tabs } from './components/TabBar.jsx'
+import { useTabSwipe } from './lib/useTabSwipe.js'
+
+const tabPaths = tabs.map((t) => t.to)
 import ScreenFooter from './components/ScreenFooter.jsx'
 import { ToastProvider } from './components/Toast.jsx'
 
@@ -29,6 +32,7 @@ export default function App() {
   const [session, setSession] = useState(undefined)
   const online = useOnline()
   const { pathname } = useLocation()
+  useTabSwipe(tabPaths)
 
   // Start every new screen at the top (the browser would keep the old scroll position).
   // Braces matter: newer browsers make scrollTo return a Promise, and React

@@ -65,6 +65,8 @@ body {
   line-height: 1.45;
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
+  /* A screen sliding in (swipe between tabs) must not make the page scroll sideways. */
+  overflow-x: clip;
   /* Keep content out from under the Dynamic Island / status bar. */
   padding-top: env(safe-area-inset-top);
   padding-left: env(safe-area-inset-left);
@@ -1804,4 +1806,24 @@ a.charge-top .charge-name {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+/* ───────── Swiping between tabs (src/lib/useTabSwipe.js): the new
+   screen slides in a little from the side the thumb came from. */
+@keyframes slide-from-right {
+  from { transform: translateX(2.5rem); opacity: 0.4; }
+}
+@keyframes slide-from-left {
+  from { transform: translateX(-2.5rem); opacity: 0.4; }
+}
+[data-swipe='left'] main.screen {
+  animation: slide-from-right 0.2s ease-out;
+}
+[data-swipe='right'] main.screen {
+  animation: slide-from-left 0.2s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-swipe] main.screen {
+    animation: none;
+  }
 }

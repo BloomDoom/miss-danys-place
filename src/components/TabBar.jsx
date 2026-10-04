@@ -12,7 +12,7 @@ const icons = {
 
 // Home sits in the middle as a raised round button (like a floating
 // action button) showing the logo's house, with two tabs on each side.
-const tabs = [
+export const tabs = [
   { to: '/payments', label: 'Payments', icon: 'payments' },
   { to: '/students', label: 'Students', icon: 'students' },
   { to: '/', label: 'Home', home: true },
