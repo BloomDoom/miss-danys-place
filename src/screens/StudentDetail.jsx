@@ -5,7 +5,7 @@ import { unwrap, useLoad } from '../lib/useLoad.js'
 import { formatDate, todayISO } from '../lib/format.js'
 import { currentEnrollments } from '../lib/groups.js'
 import { callLink, whatsappLink } from '../lib/phone.js'
-import { EMPTY_CONTACT, ageOn, nameClass, formatSchoolYear, hasPhone, saveContacts, sortedContacts } from '../lib/students.js'
+import { EMPTY_CONTACT, ageOn, nameClass, formatSchoolYear, hasPhone, mainContact, saveContacts, sortedContacts } from '../lib/students.js'
 import { saveErrorMessage } from '../lib/errors.js'
 import { useToast } from '../components/Toast.jsx'
 import LoadState from '../components/LoadState.jsx'
@@ -71,6 +71,7 @@ function ViewStudent({ student, onEdit, reload }) {
   const [error, setError] = useState('')
   const groups = currentEnrollments(student.enrollments).map((e) => e.groups)
   const contacts = sortedContacts(student)
+  const messagesTo = mainContact(student)
   const age = ageOn(student.birth_date)
   // "Colegio San José · Grade 3"
   const school = [student.school, formatSchoolYear(student)].filter(Boolean).join(' · ')
@@ -120,7 +121,7 @@ function ViewStudent({ student, onEdit, reload }) {
 
       {student.phone && <Contact label={`${student.name.split(' ')[0]}’s phone`} phone={student.phone} />}
       {contacts.map((c) => (
-        <Contact key={c.id} label={c.name} phone={c.phone} />
+        <Contact key={c.id} label={c.name} phone={c.phone} main={contacts.length > 1 && messagesTo?.id === c.id} />
       ))}
       {!student.phone && contacts.length === 0 && (
         <p className="empty">No phone yet. Tap “Edit details” to add one.</p>
@@ -149,13 +150,15 @@ function ViewStudent({ student, onEdit, reload }) {
 }
 
 // A phone number with big Call and WhatsApp buttons.
-function Contact({ label, phone }) {
+// `main` = the contact that gets birthday, group and exam messages.
+function Contact({ label, phone, main }) {
   const whatsapp = phone && whatsappLink(phone)
   return (
     <section className="contact">
       <p>
         <strong>{label}</strong>
         {phone && <span className="muted"> · {phone}</span>}
+        {main && <> <span className="chip chip-paid">Gets messages</span></>}
       </p>
       {phone && (
         <div className="btn-row">

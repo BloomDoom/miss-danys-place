@@ -103,8 +103,11 @@ export default function StudentFields({ values, onChange, contacts, onContactsCh
   )
 }
 
+// The first contact gets the messages (birthday, group, exam), so
+// "Send messages here" moves a contact to the top.
 function ContactsEditor({ contacts, onChange }) {
   const set = (i, key, value) => onChange(contacts.map((c, j) => (j === i ? { ...c, [key]: value } : c)))
+  const moveToTop = (i) => onChange([contacts[i], ...contacts.filter((_, j) => j !== i)])
 
   return (
     <fieldset className="contacts-editor">
@@ -126,6 +129,14 @@ function ContactsEditor({ contacts, onChange }) {
             Phone / WhatsApp
             <input type="tel" value={c.phone} onChange={(e) => set(i, 'phone', e.target.value)} placeholder="e.g. 11 5555-1234" />
           </label>
+          {contacts.length > 1 &&
+            (i === 0 ? (
+              <p className="success">✓ Messages go to this contact</p>
+            ) : (
+              <button type="button" className="btn-secondary" onClick={() => moveToTop(i)}>
+                Send messages here
+              </button>
+            ))}
           {contacts.length > 1 && (
             <button type="button" className="btn-text" onClick={() => onChange(contacts.filter((_, j) => j !== i))}>
               Remove this contact
