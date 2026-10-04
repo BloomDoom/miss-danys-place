@@ -1853,3 +1853,16 @@ a.charge-top .charge-name {
     animation: none;
   }
 }
+
+/* ───────── Round 3: an exam's screen */
+.exam-when {
+  margin: 0 0 1rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+.pick-list {
+  margin: 0.5rem 0;
+}
+.pick-list .checkbox-row input {
+  flex-shrink: 0;
+}

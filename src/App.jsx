@@ -19,6 +19,8 @@ import Import from './screens/Import.jsx'
 import Makeups from './screens/Makeups.jsx'
 import Exams from './screens/Exams.jsx'
 import ExamEdit from './screens/ExamEdit.jsx'
+import ExamDetail from './screens/ExamDetail.jsx'
+import ExamMessage from './screens/ExamMessage.jsx'
 import Insights from './screens/Insights.jsx'
 import TabBar, { tabs } from './components/TabBar.jsx'
 import { useTabSwipe } from './lib/useTabSwipe.js'
@@ -81,7 +83,9 @@ export default function App() {
             <Route path="/class/slot/:slotId/:date" element={<ClassDetail />} />
             <Route path="/makeups" element={<Makeups />} />
             <Route path="/exams" element={<Exams />} />
-            <Route path="/exams/:id" element={<ExamEdit />} />
+            <Route path="/exams/:id" element={<ExamDetail />} />
+            <Route path="/exams/:id/message" element={<ExamMessage />} />
+            <Route path="/exams/entry/:id" element={<ExamEdit />} />
             <Route path="/insights" element={<Insights />} />
             <Route path="/payments" element={<Payments />} />
             <Route path="/students" element={<Students />} />

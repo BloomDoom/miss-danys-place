@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase.js'
 import { unwrap, useLoad } from '../lib/useLoad.js'
-import { formatDate } from '../lib/format.js'
+import { formatDate, formatDay, formatTime } from '../lib/format.js'
 import { LEVELS, RESULTS, examYear } from '../lib/exams.js'
 import { ageOn } from '../lib/students.js'
 import { saveErrorMessage } from '../lib/errors.js'
@@ -11,15 +11,16 @@ import LoadState from '../components/LoadState.jsx'
 import { useGoBack } from '../components/BackButton.jsx'
 
 function loadExam(id) {
-  return unwrap(supabase.from('trinity_exams').select('*, students(id, name, birth_date)').eq('id', id).single())
+  return unwrap(supabase.from('trinity_exams').select('*, students(id, name, birth_date), exams(*)').eq('id', id).single())
 }
 
-// One exam, with big controls: level, date, and the result as buttons.
+// One student in an exam: the result as big buttons. Entries saved before
+// exams had their own level and date (no exam_id) also get those fields.
 export default function ExamEdit() {
   const { id } = useParams()
   const result = useLoad(() => loadExam(id), [id])
   const exam = result.data
-  const goBack = useGoBack(exam ? `/exams?year=${examYear(exam)}` : '/exams')
+  const goBack = useGoBack(!exam ? '/exams' : exam.exam_id ? `/exams/${exam.exam_id}` : `/exams?year=${examYear(exam)}`)
 
   return (
     <main className="screen">
@@ -46,7 +47,10 @@ function ExamForm({ exam, onDone }) {
     setBusy(true)
     try {
       await unwrap(
-        supabase.from('trinity_exams').update({ level: level || null, exam_date: date || null, result: examResult || null }).eq('id', exam.id),
+        supabase
+          .from('trinity_exams')
+          .update(exam.exams ? { result: examResult || null } : { level: level || null, exam_date: date || null, result: examResult || null })
+          .eq('id', exam.id),
       )
       showToast('Exam saved')
       onDone()
@@ -57,10 +61,10 @@ function ExamForm({ exam, onDone }) {
   }
 
   async function remove() {
-    if (!window.confirm(`Remove ${student.name}’s exam?`)) return
+    if (!window.confirm(exam.exams ? `Take ${student.name} out of this exam?` : `Remove ${student.name}’s exam?`)) return
     try {
       await unwrap(supabase.from('trinity_exams').update({ deleted_at: new Date().toISOString() }).eq('id', exam.id))
-      showToast('Exam removed')
+      showToast(exam.exams ? `${student.name} taken out of the exam` : 'Exam removed')
       onDone()
     } catch (err) {
       setError(saveErrorMessage(err))
@@ -80,19 +84,28 @@ function ExamForm({ exam, onDone }) {
         )}
       </p>
 
-      <label>
-        Exam level
-        <select value={level} onChange={(e) => setLevel(e.target.value)}>
-          <option value="">Not decided yet</option>
-          {LEVELS.map((l) => (
-            <option key={l} value={l}>{l}</option>
-          ))}
-        </select>
-      </label>
-      <label>
-        Exam date
-        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-      </label>
+      {exam.exams ? (
+        <p className="exam-when">
+          {exam.exams.level} · {formatDay(exam.exams.exam_date)}
+          {exam.exams.exam_time && ` · ${formatTime(exam.exams.exam_time)}`}
+        </p>
+      ) : (
+        <>
+          <label>
+            Exam level
+            <select value={level} onChange={(e) => setLevel(e.target.value)}>
+              <option value="">Not decided yet</option>
+              {LEVELS.map((l) => (
+                <option key={l} value={l}>{l}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Exam date
+            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+          </label>
+        </>
+      )}
 
       <fieldset>
         <legend>Result</legend>
@@ -116,7 +129,9 @@ function ExamForm({ exam, onDone }) {
       <button className="btn-primary" disabled={busy}>{busy ? 'Saving…' : 'Save'}</button>
 
       <section className="section">
-        <button type="button" className="btn-secondary" onClick={remove}>Remove this exam</button>
+        <button type="button" className="btn-secondary" onClick={remove}>
+          {exam.exams ? 'Take out of this exam' : 'Remove this exam'}
+        </button>
       </section>
     </form>
   )
