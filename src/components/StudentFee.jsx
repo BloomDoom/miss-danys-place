@@ -32,6 +32,7 @@ export default function StudentFee({ student, onChanged }) {
     try {
       await work()
       showToast(message)
+      result.reload()
       onChanged()
       return true
     } catch (err) {
