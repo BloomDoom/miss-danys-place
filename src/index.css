@@ -862,18 +862,57 @@ button.back-link {
 }
 
 /* Payments summary: collected per method */
-.method-totals {
-  list-style: none;
-  margin: 0.75rem 0 0;
-  padding: 0.5rem 0 0;
+/* "How they paid": one bar split by method + a legend with % and amount */
+.method-chart {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
   border-top: 1px solid var(--border);
 }
-.method-totals li {
+.method-chart-title {
+  font-weight: 700;
+}
+.method-bar {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 0 1rem;
+  gap: 2px; /* a thin gap of card color between methods */
+  height: 16px;
+  margin: 0.5rem 0;
+}
+.method-bar div {
+  min-width: 4px;
+}
+.method-bar div:first-child {
+  border-radius: 4px 0 0 4px;
+}
+.method-bar div:last-child {
+  border-radius: 0 4px 4px 0;
+}
+.method-bar div:only-child {
+  border-radius: 4px;
+}
+.method-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.method-legend li {
+  display: flex;
+  flex-wrap: wrap; /* big text: the amount drops under the name */
+  align-items: baseline;
+  gap: 0 0.6rem;
   padding: 0.2rem 0;
+}
+.method-legend .method-name {
+  flex: 1;
+}
+.method-dot {
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 3px;
+  align-self: center;
+}
+
+.payments-search {
+  margin-bottom: 0.5rem;
 }
 .btn-cancel {
   width: 100%;
@@ -1448,19 +1487,6 @@ textarea {
 }
 
 /* Payments: totals per method as teal pills */
-.method-totals {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  border-top: none;
-}
-.method-totals li {
-  padding: 0.2rem 0.8rem;
-  background: var(--teal-soft);
-  color: #1f544d;
-  border-radius: 999px;
-  font-size: 0.95rem;
-}
 .progress {
   height: 14px;
 }

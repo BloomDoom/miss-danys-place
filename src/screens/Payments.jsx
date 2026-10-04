@@ -3,8 +3,9 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase.js'
 import { unwrap, useLoad } from '../lib/useLoad.js'
 import { addMonths, currentMonthISO, formatMoney, formatMonth } from '../lib/format.js'
-import { METHODS, STATUS_LABELS, ensureCharges, loadSettings, sortByStatus, totalsByMethod, withStatus } from '../lib/payments.js'
+import { METHODS, METHOD_COLORS, STATUS_LABELS, ensureCharges, loadSettings, sortByStatus, totalsByMethod, withStatus } from '../lib/payments.js'
 import { nameClass } from '../lib/students.js'
+import { normalize } from '../lib/groups.js'
 import LoadState from '../components/LoadState.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import PayPanel from '../components/PayPanel.jsx'
@@ -34,12 +35,14 @@ export default function Payments() {
 
   const result = useLoad(() => loadMonth(month), [month])
   const [openId, setOpenId] = useState(null) // the charge whose "Mark paid" panel is open
+  const [search, setSearch] = useState('')
 
   const charges = result.data?.charges
   const expected = charges?.reduce((sum, c) => sum + c.amount, 0) ?? 0
   const collected = charges?.reduce((sum, c) => sum + Math.min(c.paid, c.amount), 0) ?? 0
   const owing = charges?.filter((c) => c.status !== 'paid').length ?? 0
   const byMethod = charges ? totalsByMethod(charges) : []
+  const shown = search ? charges?.filter((c) => normalize(c.students.name).includes(normalize(search))) : charges
 
   return (
     <main className="screen">
@@ -81,21 +84,24 @@ export default function Payments() {
                 <div style={{ width: `${expected ? (collected / expected) * 100 : 0}%` }} />
               </div>
               <p>{owing === 0 ? 'Everyone has paid 🎉' : owing === 1 ? '1 student still has to pay' : `${owing} students still have to pay`}</p>
-              {byMethod.length > 0 && (
-                <ul className="method-totals" aria-label="Collected by payment method">
-                  {byMethod.map(([method, total]) => (
-                    <li key={method}>
-                      <span>{METHODS[method]}</span>
-                      <strong>{formatMoney(total)}</strong>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              {byMethod.length > 0 && <MethodChart totals={byMethod} />}
             </section>
           )}
 
+          {charges.length > 0 && (
+            <input
+              type="search"
+              className="payments-search"
+              placeholder="Search by name"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              aria-label="Search by name"
+            />
+          )}
+          {search && shown.length === 0 && <p className="empty">No one called “{search.trim()}” has a fee this month.</p>}
+
           <ul className="card-list">
-            {charges.map((c) => (
+            {shown.map((c) => (
               <li key={c.id} className={`card charge-card status-${c.status}`}>
                 {/* The whole top (name, group, status, amount) opens the student */}
                 <Link to={`/students/${c.students.id}`} className="charge-top">
@@ -129,5 +135,36 @@ export default function Payments() {
         </>
       )}
     </main>
+  )
+}
+
+// How the money came in: one bar split by payment method, with each
+// method's share and amount written underneath (so it isn't color alone).
+// The methods keep their order and color, whatever the amounts.
+function MethodChart({ totals }) {
+  const amounts = Object.fromEntries(totals)
+  const total = totals.reduce((sum, [, amount]) => sum + amount, 0)
+  const methods = Object.keys(METHODS).filter((m) => amounts[m])
+  const percent = (m) => Math.round((amounts[m] / total) * 100)
+
+  return (
+    <div className="method-chart">
+      <p className="method-chart-title">How they paid</p>
+      <div className="method-bar" aria-hidden="true">
+        {methods.map((m) => (
+          <div key={m} style={{ flexGrow: amounts[m], background: METHOD_COLORS[m] }} title={`${METHODS[m]}: ${percent(m)}%`} />
+        ))}
+      </div>
+      <ul className="method-legend" aria-label="Collected by payment method">
+        {methods.map((m) => (
+          <li key={m}>
+            <span className="method-dot" style={{ background: METHOD_COLORS[m] }} aria-hidden="true" />
+            <span className="method-name">{METHODS[m]}</span>
+            <strong>{percent(m)}%</strong>
+            <span className="muted">{formatMoney(amounts[m])}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
   )
 }

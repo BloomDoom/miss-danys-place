@@ -10,6 +10,15 @@ export const METHODS = {
   cuenta_dni: 'Cuenta DNI',
 }
 
+// One color per payment method, always the same (checked so they can be
+// told apart, also by colorblind people). Used by the chart on Payments.
+export const METHOD_COLORS = {
+  cash: '#1baf7a',
+  transfer: '#2a78d6',
+  mercado_pago: '#eb6834',
+  cuenta_dni: '#4a3aa7',
+}
+
 // Total collected per payment method, biggest first: [['cash', 50000], ...]
 export function totalsByMethod(charges) {
   const totals = {}
