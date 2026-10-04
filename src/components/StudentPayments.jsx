@@ -4,6 +4,7 @@ import { unwrap, useLoad } from '../lib/useLoad.js'
 import { currentMonthISO, formatDate, formatMoney, formatMonth, parseAmount } from '../lib/format.js'
 import { METHODS, STATUS_LABELS, activePayments, ensureCharges, loadSettings, withStatus } from '../lib/payments.js'
 import { saveErrorMessage } from '../lib/errors.js'
+import { CHARGE_KINDS } from '../lib/fees.js'
 import { useToast } from './Toast.jsx'
 import LoadState from './LoadState.jsx'
 import PayPanel from './PayPanel.jsx'
@@ -37,7 +38,7 @@ export default function StudentPayments({ studentId }) {
       {charges && (
         <>
           {charges.length === 0 ? (
-            <p className="empty">No fees yet. They appear once the student is in a group with a price.</p>
+            <p className="empty">No fees yet. They appear once the student is in a group.</p>
           ) : (
             <p className={owed > 0 ? 'error' : 'success'}>{owed > 0 ? `Owes ${formatMoney(owed)} in total` : 'Nothing owed ✓'}</p>
           )}
@@ -47,7 +48,7 @@ export default function StudentPayments({ studentId }) {
                 <div className="charge-top">
                   <span className="charge-name">
                     <span className="card-title">{formatMonth(c.month)}</span>
-                    <span className="muted">{c.groups.name}</span>
+                    <span className="muted">{c.kind === 'materials' ? CHARGE_KINDS.materials : c.groups?.name}</span>
                   </span>
                   <span className="charge-right">
                     <span className={`chip chip-${c.status}`}>{STATUS_LABELS[c.status]}</span>
@@ -147,7 +148,7 @@ function EditCharge({ charge, onDone }) {
   return (
     <form onSubmit={handleSubmit} className="slot-box">
       <label>
-        Fee for {formatMonth(charge.month)}
+        {charge.kind === 'materials' ? 'Materials' : 'Fee'} for {formatMonth(charge.month)}
         <input inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value)} autoFocus />
       </label>
       <label>

@@ -11,6 +11,7 @@ import { useToast } from '../components/Toast.jsx'
 import LoadState from '../components/LoadState.jsx'
 import StudentFields, { cleanStudent } from '../components/StudentFields.jsx'
 import StudentPayments from '../components/StudentPayments.jsx'
+import StudentFee from '../components/StudentFee.jsx'
 import StudentAbsences from '../components/StudentAbsences.jsx'
 import StudentRewards from '../components/StudentRewards.jsx'
 import StudentAttendance from '../components/StudentAttendance.jsx'
@@ -31,6 +32,7 @@ export default function StudentDetail() {
   const { id } = useParams()
   const result = useLoad(() => loadStudent(id), [id])
   const [editing, setEditing] = useState(false)
+  const [feeVersion, setFeeVersion] = useState(0) // bumped when the fee changes, to reload the payments
 
   return (
     <main className="screen">
@@ -49,7 +51,14 @@ export default function StudentDetail() {
           <>
             <ViewStudent student={result.data.student} onEdit={() => setEditing(true)} reload={result.reload} />
             <StudentRewards student={result.data.student} />
-            <StudentPayments studentId={result.data.student.id} />
+            <StudentFee
+              student={result.data.student}
+              onChanged={() => {
+                result.reload()
+                setFeeVersion(feeVersion + 1)
+              }}
+            />
+            <StudentPayments key={feeVersion} studentId={result.data.student.id} />
             <StudentAbsences studentId={result.data.student.id} />
           </>
         ))}

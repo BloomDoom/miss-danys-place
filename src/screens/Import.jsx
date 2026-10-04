@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase.js'
 import { unwrap } from '../lib/useLoad.js'
 import { parseCsv } from '../lib/csv.js'
-import { currentMonthISO, formatMoney, parseAmount, parseDate, todayISO } from '../lib/format.js'
+import { parseDate, todayISO } from '../lib/format.js'
 import { normalize } from '../lib/groups.js'
 import { cleanContacts, parseSchoolYear, parseSex, saveContacts } from '../lib/students.js'
 import { loadErrorMessage, saveErrorMessage } from '../lib/errors.js'
@@ -13,9 +13,9 @@ import { loadErrorMessage, saveErrorMessage } from '../lib/errors.js'
 // import only the rows without problems.
 
 const EXAMPLES = {
-  groups: `name,level,schedule,price,notes
-Kids A1,Beginners,Tue 17:00 60 / Thu 17:00 60,25000,
-Adults Advanced,,Wed 19:00 90,30000,Book: Headway 4`,
+  groups: `name,level,schedule,notes
+Kids A1,Beginners,Tue 17:00 60 / Thu 17:00 60,
+Adults Advanced,,Wed 19:00 90,Book: Headway 4`,
   students: `name,sex,group,birth_date,phone,school,school_year,contact1_name,contact1_phone,contact2_name,contact2_phone,start_date,notes
 Sofía Pérez,girl,Kids A1,12/03/2017,,Colegio San José,Grade 3,Laura (mum),11 5555-1234,Carlos (dad),11 5555-9876,01/03/2026,
 Martín Gómez,boy,Adults Advanced,04/07/1990,11 4444-9876,,,,,,,15/03/2026,Pays by transfer`,
@@ -55,12 +55,10 @@ async function checkGroups(rows) {
     try {
       if (!row.name) throw new Error('the name is empty')
       const slots = parseSchedule(row.schedule || '')
-      const price = row.price ? parseAmount(row.price) : null
-      if (row.price && price === null) throw new Error(`can't read the price "${row.price}"`)
       if (seen.has(normalize(row.name))) item.skip = 'already exists'
       seen.add(normalize(row.name))
-      item.detail = [row.schedule, price !== null && formatMoney(price)].filter(Boolean).join(' · ')
-      item.data = { name: row.name, level: row.level || null, notes: row.notes || null, slots, price }
+      item.detail = row.schedule
+      item.data = { name: row.name, level: row.level || null, notes: row.notes || null, slots }
     } catch (err) {
       item.problem = err.message
     }
@@ -120,13 +118,10 @@ async function checkStudents(rows) {
   })
 }
 
-async function importGroup({ name, level, notes, slots, price }) {
+async function importGroup({ name, level, notes, slots }) {
   const group = await unwrap(supabase.from('groups').insert({ name, level, notes }).select().single())
   if (slots.length > 0) {
     await unwrap(supabase.from('group_slots').insert(slots.map((s) => ({ ...s, group_id: group.id }))))
-  }
-  if (price !== null) {
-    await unwrap(supabase.from('group_prices').insert({ group_id: group.id, amount: price, effective_month: currentMonthISO() }))
   }
 }
 
@@ -209,7 +204,7 @@ export default function Import() {
         <h2>The file should look like this</h2>
         <pre className="example">{EXAMPLES[kind]}</pre>
         {kind === 'groups' ? (
-          <p className="muted">Schedule: day, time and minutes, several separated by “/”. The price starts this month.</p>
+          <p className="muted">Schedule: day, time and minutes, several separated by “/”. (The monthly fee is the same for everyone: see Settings.)</p>
         ) : (
           <p className="muted">Group must match a group’s name. Sex: girl or boy. Dates as DD/MM/YYYY. Empty columns are fine; older files with phone, parent_name and parent_phone also work.</p>
         )}

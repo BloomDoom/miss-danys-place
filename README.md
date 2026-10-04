@@ -15,6 +15,9 @@ supabase/
   02-payments.sql           monthly fees function (run second)
   03-round2.sql             contacts, birthdays, rewards, Trinity exams, Cuenta DNI (run third)
   04-school-year.sql        school year (Grade/Year 1–7) for students (run fourth)
+  05-student-sex.sql        girl/boy, for pink/blue names
+  06-fees.sql               one school fee, sibling price, becas, April materials
+  07-exams.sql              exams (level + date + time) with many students each
   reset-test-data.sql       ⚠️ erases all data (only before loading real data)
 src/
   main.jsx                  starts React, the router and the crash screen
@@ -43,9 +46,13 @@ day the app calculates them from `group_slots`, and mixes in rows from
 `sessions` for classes that were cancelled, moved, had attendance saved, or
 are extras (see `src/lib/sessions.js`).
 
-**How fees work:** when the Payments screen opens a month, `ensure_charges`
-creates one fee per student per group, copying the price of that month.
-Changing a price only updates fees with no payments and no hand edit.
+**How fees work:** there is one monthly fee for the whole school (Settings),
+and a lower one for siblings (students linked on their screen). When the
+Payments screen opens a month, `ensure_charges` creates one fee per student
+in a group: the regular or sibling fee, minus their beca %. In April there's
+also a Materials charge of the full fee. Changes to the fee, a beca or
+siblings only update this month's and next month's fees with no payments
+and no hand edit. Months before October 2026 kept the old per-group prices.
 
 ## One-time setup
 
@@ -53,7 +60,8 @@ Changing a price only updates fees with no payments and no hand edit.
 1. Create a free project at [supabase.com](https://supabase.com). Pick the
    São Paulo region (closest to Argentina).
 2. **SQL Editor → New query**: paste all of `supabase/schema.sql` and press **Run**.
-   Then do the same with `supabase/02-payments.sql`, `03-round2.sql` and `04-school-year.sql`, in that order.
+   Then do the same with `supabase/02-payments.sql`, `03-round2.sql`, `04-school-year.sql`,
+   `05-student-sex.sql`, `06-fees.sql` and `07-exams.sql`, in that order.
 3. **Authentication → Sign In / Providers**: turn **off** "Allow new users to sign up".
 4. **Authentication → Users → Add user → Create new user**: her email and a
    password, with "Auto Confirm User" ticked.
@@ -90,8 +98,8 @@ Then Groups → gear → **Import from a spreadsheet**. Import groups first, the
 students. Commas or semicolons both work (Excel in Spanish uses `;`).
 
 ```
-name,level,schedule,price,notes
-Kids A1,Beginners,Tue 17:00 60 / Thu 17:00 60,25000,
+name,level,schedule,notes
+Kids A1,Beginners,Tue 17:00 60 / Thu 17:00 60,
 
 name,group,birth_date,phone,school,school_year,contact1_name,contact1_phone,contact2_name,contact2_phone,start_date,notes
 Sofía Pérez,Kids A1,12/03/2017,,Colegio San José,Grade 3,Laura (mum),11 5555-1234,,,01/03/2026,

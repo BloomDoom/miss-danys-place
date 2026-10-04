@@ -2,11 +2,9 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase.js'
 import { unwrap, useLoad } from '../lib/useLoad.js'
-import {
-  addDays, addMonths, currentMonthISO, formatDay, formatDuration, formatMoney, formatMonth, formatTime, parseAmount, todayISO, weekdayName,
-} from '../lib/format.js'
+import { addDays, formatDay, formatDuration, formatTime, todayISO, weekdayName } from '../lib/format.js'
 import { loadSessions, sessionPath } from '../lib/sessions.js'
-import { activeSlots, currentEnrollments, priceForMonth } from '../lib/groups.js'
+import { activeSlots, currentEnrollments } from '../lib/groups.js'
 import { saveErrorMessage } from '../lib/errors.js'
 import { useToast } from '../components/Toast.jsx'
 import { nameClass } from '../lib/students.js'
@@ -18,7 +16,7 @@ function loadGroup(id) {
   return unwrap(
     supabase
       .from('groups')
-      .select('*, group_slots(*), group_prices(*), enrollments(id, end_date, students(id, name, sex, active))')
+      .select('*, group_slots(*), enrollments(id, end_date, students(id, name, sex, active))')
       .eq('id', id)
       .single(),
   )
@@ -41,7 +39,6 @@ export default function GroupDetail() {
           </h1>
           <ClassTimes group={group} reload={result.reload} />
           {group.active && <NextClasses group={group} />}
-          <Price group={group} reload={result.reload} />
           <Students group={group} />
           <Details group={group} reload={result.reload} />
           <Deactivate group={group} reload={result.reload} />
@@ -159,102 +156,6 @@ function NextClasses({ group }) {
         </ul>
       )}
       <Link to={`/class/new?group=${group.id}`} className="btn-secondary">+ Add extra class</Link>
-    </section>
-  )
-}
-
-function Price({ group, reload }) {
-  const showToast = useToast()
-  const thisMonth = currentMonthISO()
-  const [changing, setChanging] = useState(false)
-  const [amount, setAmount] = useState('')
-  const [month, setMonth] = useState(thisMonth)
-  const [error, setError] = useState('')
-
-  const current = priceForMonth(group.group_prices, thisMonth)
-  const upcoming = group.group_prices
-    .filter((p) => p.effective_month > thisMonth)
-    .sort((a, b) => a.effective_month.localeCompare(b.effective_month))
-  const history = [...group.group_prices].sort((a, b) => b.effective_month.localeCompare(a.effective_month))
-  // She can pick from 2 months back to 3 months ahead.
-  const monthChoices = [-2, -1, 0, 1, 2, 3].map((n) => addMonths(thisMonth, n))
-
-  async function handleSubmit(e) {
-    e.preventDefault()
-    setError('')
-    const value = parseAmount(amount)
-    if (value === null) return setError('Type the new price, for example 28000.')
-    // "upsert" = insert, or update if this group already has a price
-    // starting that same month. Earlier months are never touched.
-    const ok = await save(
-      () =>
-        unwrap(
-          supabase
-            .from('group_prices')
-            .upsert({ group_id: group.id, amount: value, effective_month: month }, { onConflict: 'group_id,effective_month' }),
-        ),
-      { reload, showToast, setError, message: `New price saved from ${formatMonth(month)}` },
-    )
-    if (ok) {
-      setChanging(false)
-      setAmount('')
-      setMonth(thisMonth)
-    }
-  }
-
-  return (
-    <section className="section">
-      <h2>Monthly price</h2>
-      {current ? (
-        <p className="big-number">
-          {formatMoney(current.amount)}
-          <span className="muted"> since {formatMonth(current.effective_month)}</span>
-        </p>
-      ) : (
-        <p className="empty">No price yet. Tap “Change price” to set one.</p>
-      )}
-      {upcoming.map((p) => (
-        <p key={p.id}>From {formatMonth(p.effective_month)}: <strong>{formatMoney(p.amount)}</strong></p>
-      ))}
-
-      {changing ? (
-        <form onSubmit={handleSubmit} className="slot-box">
-          <label>
-            New price
-            <input inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="e.g. 28000" autoFocus />
-          </label>
-          <label>
-            Starting from which month?
-            <select value={month} onChange={(e) => setMonth(e.target.value)}>
-              {monthChoices.map((m) => (
-                <option key={m} value={m}>{formatMonth(m)}</option>
-              ))}
-            </select>
-          </label>
-          <p className="muted">Months before this keep their old price.</p>
-          <div className="btn-row">
-            <button type="button" className="btn-secondary" onClick={() => setChanging(false)}>Cancel</button>
-            <button className="btn-primary">Save price</button>
-          </div>
-        </form>
-      ) : (
-        <button className="btn-secondary" onClick={() => setChanging(true)}>Change price</button>
-      )}
-      {error && <p className="error" role="alert">{error}</p>}
-
-      {history.length > 1 && (
-        <details>
-          <summary>Price history</summary>
-          <ul className="row-list">
-            {history.map((p) => (
-              <li key={p.id}>
-                <span>From {formatMonth(p.effective_month)}</span>
-                <strong>{formatMoney(p.amount)}</strong>
-              </li>
-            ))}
-          </ul>
-        </details>
-      )}
     </section>
   )
 }

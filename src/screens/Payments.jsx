@@ -17,7 +17,7 @@ async function loadMonth(month) {
   const charges = await unwrap(
     supabase
       .from('charges')
-      .select('*, students(id, name, sex), groups(id, name), payments(*)')
+      .select('*, students(id, name, sex, beca_percent, family_id), groups(id, name), payments(*)')
       .eq('month', month)
       .is('deleted_at', null),
   )
@@ -40,8 +40,15 @@ export default function Payments() {
   const charges = result.data?.charges
   const expected = charges?.reduce((sum, c) => sum + c.amount, 0) ?? 0
   const collected = charges?.reduce((sum, c) => sum + Math.min(c.paid, c.amount), 0) ?? 0
-  const owing = charges?.filter((c) => c.status !== 'paid').length ?? 0
+  // Students, not charges: in April someone can owe the fee and materials.
+  const owing = new Set(charges?.filter((c) => c.status !== 'paid').map((c) => c.student_id)).size
   const byMethod = charges ? totalsByMethod(charges) : []
+  // Families with more than one child paying this month (they get the sibling price).
+  const familyCounts = {}
+  for (const c of charges ?? []) {
+    const family = c.students.family_id
+    if (c.kind === 'fee' && family) familyCounts[family] = (familyCounts[family] || 0) + 1
+  }
   const shown = search ? charges?.filter((c) => normalize(c.students.name).includes(normalize(search))) : charges
 
   return (
@@ -73,7 +80,7 @@ export default function Payments() {
         <>
           {charges.length === 0 ? (
             <EmptyState emoji="💰" title="No fees this month yet">
-              Fees appear here for students in a group that has a price.
+              Fees appear here for every student in a group.
             </EmptyState>
           ) : (
             <section className="summary">
@@ -107,7 +114,11 @@ export default function Payments() {
                 <Link to={`/students/${c.students.id}`} className="charge-top">
                   <span className="charge-name">
                     <span className={`card-title ${nameClass(c.students)}`}>{c.students.name}</span>
-                    <span className="muted">{c.groups.name}</span>
+                    <span className="muted">
+                      {c.kind === 'materials' ? <strong>Materials</strong> : c.groups?.name}
+                      {c.kind === 'fee' && familyCounts[c.students.family_id] > 1 && ' · Sibling'}
+                      {c.kind === 'fee' && c.students.beca_percent > 0 && ` · Beca ${c.students.beca_percent}%`}
+                    </span>
                   </span>
                   <span className="charge-right">
                     <span className={`chip chip-${c.status}`}>{STATUS_LABELS[c.status]}</span>

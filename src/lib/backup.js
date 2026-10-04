@@ -4,7 +4,7 @@ import { unwrap } from './useLoad.js'
 import { todayISO } from './format.js'
 
 const TABLES = [
-  'groups', 'group_slots', 'group_prices', 'students', 'student_contacts', 'enrollments', 'sessions', 'absences',
+  'fee_prices', 'groups', 'group_slots', 'group_prices', 'students', 'student_contacts', 'enrollments', 'sessions', 'absences',
   'charges', 'payments', 'reward_types', 'rewards', 'exams', 'trinity_exams', 'settings',
 ]
 

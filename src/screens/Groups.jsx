@@ -1,8 +1,7 @@
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase.js'
 import { unwrap, useLoad } from '../lib/useLoad.js'
-import { formatMoney } from '../lib/format.js'
-import { currentEnrollments, priceForMonth, slotsSummary } from '../lib/groups.js'
+import { currentEnrollments, slotsSummary } from '../lib/groups.js'
 import LoadState from '../components/LoadState.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 
@@ -10,7 +9,7 @@ function loadGroups() {
   return unwrap(
     supabase
       .from('groups')
-      .select('*, group_slots(*), group_prices(*), enrollments(end_date, students(active))')
+      .select('*, group_slots(*), enrollments(end_date, students(active))')
       .order('name'),
   )
 }
@@ -63,7 +62,6 @@ function GroupList({ groups }) {
   return (
     <ul className="card-list">
       {groups.map((group) => {
-        const price = priceForMonth(group.group_prices)
         const studentCount = currentEnrollments(group.enrollments).filter((e) => e.students.active).length
         return (
           <li key={group.id}>
@@ -74,8 +72,6 @@ function GroupList({ groups }) {
               </span>
               <span>{slotsSummary(group.group_slots)}</span>
               <span className="muted">
-                {price ? `${formatMoney(price.amount)} a month` : 'No price yet'}
-                {' · '}
                 {studentCount === 1 ? '1 student' : `${studentCount} students`}
               </span>
             </Link>

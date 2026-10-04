@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase.js'
 import { unwrap, useLoad } from '../lib/useLoad.js'
 import { loadSettings } from '../lib/payments.js'
+import { feeForMonth, loadFeePrices } from '../lib/fees.js'
+import { addMonths, currentMonthISO, formatMoney, formatMonth, parseAmount } from '../lib/format.js'
 import { loadErrorMessage, saveErrorMessage } from '../lib/errors.js'
 import { buildBackupFiles, saveFiles } from '../lib/backup.js'
 import { useToast } from '../components/Toast.jsx'
@@ -21,6 +23,7 @@ export default function Settings() {
       <LoadState {...result} />
       {result.data && (
         <>
+          <FeeSettings />
           <PaymentSettings settings={result.data} reload={result.reload} />
           <BirthdayMessage settings={result.data} reload={result.reload} />
           <RewardTypes />
@@ -191,5 +194,114 @@ function PaymentSettings({ settings, reload }) {
       </section>
       {error && <p className="error" role="alert">{error}</p>}
     </>
+  )
+}
+
+// The monthly fee for everyone, and the lower price for siblings. Each
+// change starts in a month she picks; earlier months keep the old fee.
+function FeeSettings() {
+  const showToast = useToast()
+  const result = useLoad(loadFeePrices, [])
+  const thisMonth = currentMonthISO()
+  const [changing, setChanging] = useState(false)
+  const [regular, setRegular] = useState('')
+  const [sibling, setSibling] = useState('')
+  const [month, setMonth] = useState(thisMonth)
+  const [error, setError] = useState('')
+  // She can pick from 2 months back to 3 months ahead.
+  const monthChoices = [-2, -1, 0, 1, 2, 3].map((n) => addMonths(thisMonth, n))
+
+  if (!result.data) return <LoadState {...result} />
+  const prices = result.data
+  const current = feeForMonth(prices, thisMonth)
+  const upcoming = prices.filter((p) => p.effective_month > thisMonth)
+  const history = [...prices].reverse()
+
+  function startChange() {
+    setRegular(current ? String(current.regular) : '')
+    setSibling(current ? String(current.sibling) : '')
+    setChanging(true)
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    setError('')
+    const values = { regular: parseAmount(regular), sibling: parseAmount(sibling) }
+    if (values.regular === null || values.sibling === null) return setError('Type both fees, for example 80000 and 70000.')
+    try {
+      // "upsert" = insert, or update if a fee already starts that same month.
+      await unwrap(supabase.from('fee_prices').upsert({ ...values, effective_month: month }, { onConflict: 'effective_month' }))
+      showToast(`New fee saved from ${formatMonth(month)}`)
+      setChanging(false)
+      setMonth(thisMonth)
+      result.reload()
+    } catch (err) {
+      setError(saveErrorMessage(err))
+    }
+  }
+
+  return (
+    <section className="section">
+      <h2>Monthly fee</h2>
+      {current ? (
+        <>
+          <p className="big-number">{formatMoney(current.regular)}</p>
+          <p>Siblings: <strong>{formatMoney(current.sibling)}</strong> each</p>
+          <p className="muted">Since {formatMonth(current.effective_month)}. In April everyone also pays materials ({formatMoney(current.regular)}).</p>
+        </>
+      ) : (
+        <p className="empty">No fee yet. Tap “Change fee” to set one.</p>
+      )}
+      {upcoming.map((p) => (
+        <p key={p.id}>
+          From {formatMonth(p.effective_month)}: <strong>{formatMoney(p.regular)}</strong>, siblings {formatMoney(p.sibling)}
+        </p>
+      ))}
+
+      {changing ? (
+        <form onSubmit={handleSubmit} className="slot-box">
+          <div className="slot-fields two-equal">
+            <label>
+              Fee
+              <input inputMode="numeric" value={regular} onChange={(e) => setRegular(e.target.value)} placeholder="e.g. 80000" />
+            </label>
+            <label>
+              Siblings
+              <input inputMode="numeric" value={sibling} onChange={(e) => setSibling(e.target.value)} placeholder="e.g. 70000" />
+            </label>
+          </div>
+          <label>
+            Starting from which month?
+            <select value={month} onChange={(e) => setMonth(e.target.value)}>
+              {monthChoices.map((m) => (
+                <option key={m} value={m}>{formatMonth(m)}</option>
+              ))}
+            </select>
+          </label>
+          <p className="muted">Months before this keep their old fee. Becas are taken off each student’s fee.</p>
+          {error && <p className="error" role="alert">{error}</p>}
+          <div className="btn-row">
+            <button type="button" className="btn-secondary" onClick={() => setChanging(false)}>Cancel</button>
+            <button className="btn-primary">Save fee</button>
+          </div>
+        </form>
+      ) : (
+        <button className="btn-secondary" onClick={startChange}>Change fee</button>
+      )}
+
+      {history.length > 1 && (
+        <details>
+          <summary>Fee history</summary>
+          <ul className="row-list">
+            {history.map((p) => (
+              <li key={p.id}>
+                <span>From {formatMonth(p.effective_month)}</span>
+                <strong>{formatMoney(p.regular)} · {formatMoney(p.sibling)}</strong>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+    </section>
   )
 }

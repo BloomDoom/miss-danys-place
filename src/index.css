@@ -1866,3 +1866,8 @@ a.charge-top .charge-name {
 .pick-list .checkbox-row input {
   flex-shrink: 0;
 }
+
+/* ───────── Round 3: a student's monthly fee */
+.fee-line {
+  font-size: 1.1rem;
+}

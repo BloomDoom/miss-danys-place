@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase.js'
 import { unwrap } from '../lib/useLoad.js'
-import { currentMonthISO, parseAmount } from '../lib/format.js'
 import { saveErrorMessage } from '../lib/errors.js'
 import { useToast } from '../components/Toast.jsx'
 import SlotFields, { NEW_SLOT, slotRows } from '../components/SlotFields.jsx'
@@ -13,7 +12,6 @@ export default function GroupNew() {
   const [name, setName] = useState('')
   const [level, setLevel] = useState('')
   const [notes, setNotes] = useState('')
-  const [price, setPrice] = useState('')
   const [slots, setSlots] = useState([NEW_SLOT])
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -34,13 +32,6 @@ export default function GroupNew() {
       )
       // 2. its weekly class times: one row per day
       await unwrap(supabase.from('group_slots').insert(slots.flatMap((s) => slotRows(s, group.id))))
-      // 3. its price, starting this month
-      const amount = parseAmount(price)
-      if (amount !== null) {
-        await unwrap(
-          supabase.from('group_prices').insert({ group_id: group.id, amount, effective_month: currentMonthISO() }),
-        )
-      }
       showToast(`${group.name} created`)
       navigate(`/groups/${group.id}`, { replace: true })
     } catch (err) {
@@ -62,15 +53,6 @@ export default function GroupNew() {
         <label>
           Level <span className="optional">(optional)</span>
           <input value={level} onChange={(e) => setLevel(e.target.value)} placeholder="e.g. Beginners" />
-        </label>
-        <label>
-          Monthly price
-          <input
-            inputMode="numeric"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            placeholder="e.g. 25000"
-          />
         </label>
 
         <h2>Class times</h2>
