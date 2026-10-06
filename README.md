@@ -16,7 +16,7 @@ supabase/
   03-round2.sql             contacts, birthdays, rewards, Trinity exams, Cuenta DNI (run third)
   04-school-year.sql        school year (Grade/Year 1–7) for students (run fourth)
   05-student-sex.sql        girl/boy, for pink/blue names
-  06-fees.sql               one school fee, sibling price, becas, April materials
+  06-fees.sql               one school fee, sibling price, scholarships (becas), April materials
   07-exams.sql              exams (level + date + time) with many students each
   reset-test-data.sql       ⚠️ erases all data (only before loading real data)
 src/
@@ -49,8 +49,8 @@ are extras (see `src/lib/sessions.js`).
 **How fees work:** there is one monthly fee for the whole school (Settings),
 and a lower one for siblings (students linked on their screen). When the
 Payments screen opens a month, `ensure_charges` creates one fee per student
-in a group: the regular or sibling fee, minus their beca %. In April there's
-also a Materials charge of the full fee. Changes to the fee, a beca or
+in a group: the regular or sibling fee, minus their scholarship %. In April there's
+also a Materials charge of the full fee. Changes to the fee, a scholarship or
 siblings only update this month's and next month's fees with no payments
 and no hand edit. Months before October 2026 kept the old per-group prices.
 

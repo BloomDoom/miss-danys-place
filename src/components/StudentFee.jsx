@@ -44,7 +44,7 @@ export default function StudentFee({ student, onChanged }) {
   function changeBeca(percent) {
     save(
       () => unwrap(supabase.from('students').update({ beca_percent: percent }).eq('id', student.id)),
-      percent ? `Beca of ${percent}% saved` : 'No beca',
+      percent ? `Scholarship of ${percent}% saved` : 'No scholarship',
     )
   }
 
@@ -77,7 +77,7 @@ export default function StudentFee({ student, onChanged }) {
       {pays ? (
         <p className="fee-line">
           {pays.sibling ? 'Sibling price' : 'Fee'} {formatMoney(pays.base)}
-          {pays.beca > 0 && <> − {pays.beca}% beca</>}
+          {pays.beca > 0 && <> − {pays.beca}% scholarship</>}
           {pays.beca > 0 && <> = <strong>{formatMoney(pays.amount)}</strong></>}
           {' a month'}
         </p>
@@ -86,10 +86,10 @@ export default function StudentFee({ student, onChanged }) {
       )}
 
       <label>
-        Beca <span className="optional">(% off the fee)</span>
+        Scholarship <span className="optional">(% off the fee)</span>
         <select value={student.beca_percent} onChange={(e) => changeBeca(Number(e.target.value))}>
           {Array.from({ length: 21 }, (_, i) => i * 5).map((p) => (
-            <option key={p} value={p}>{p === 0 ? 'No beca' : `${p}%`}</option>
+            <option key={p} value={p}>{p === 0 ? 'No scholarship' : `${p}%`}</option>
           ))}
         </select>
       </label>

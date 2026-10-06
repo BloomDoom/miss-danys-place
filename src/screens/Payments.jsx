@@ -28,10 +28,11 @@ export default function Payments() {
   // Month in the URL (/payments?month=2026-09-01), like the day on Today.
   const [params, setParams] = useSearchParams()
   const thisMonth = currentMonthISO()
-  const month = params.get('month') || thisMonth
+  // No future months: nobody pays ahead, and seeing them was confusing.
+  const asked = params.get('month')
+  const month = asked && asked < thisMonth ? asked : thisMonth
   const goTo = (m) => setParams(m === thisMonth ? {} : { month: m }, { replace: true })
-  // Next month is allowed, for people who pay in advance.
-  const canGoForward = month < addMonths(thisMonth, 1)
+  const canGoForward = month < thisMonth
 
   const result = useLoad(() => loadMonth(month), [month])
   const [openId, setOpenId] = useState(null) // the charge whose "Mark paid" panel is open
@@ -117,7 +118,7 @@ export default function Payments() {
                     <span className="muted">
                       {c.kind === 'materials' ? <strong>Materials</strong> : c.groups?.name}
                       {c.kind === 'fee' && familyCounts[c.students.family_id] > 1 && ' · Sibling'}
-                      {c.kind === 'fee' && c.students.beca_percent > 0 && ` · Beca ${c.students.beca_percent}%`}
+                      {c.kind === 'fee' && c.students.beca_percent > 0 && ` · Scholarship ${c.students.beca_percent}%`}
                     </span>
                   </span>
                   <span className="charge-right">

@@ -278,7 +278,7 @@ function FeeSettings() {
               ))}
             </select>
           </label>
-          <p className="muted">Months before this keep their old fee. Becas are taken off each student’s fee.</p>
+          <p className="muted">Months before this keep their old fee. Scholarships are taken off each student’s fee.</p>
           {error && <p className="error" role="alert">{error}</p>}
           <div className="btn-row">
             <button type="button" className="btn-secondary" onClick={() => setChanging(false)}>Cancel</button>
