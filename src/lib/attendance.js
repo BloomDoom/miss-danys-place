@@ -14,6 +14,7 @@ export async function loadAttendance(from, to, groupIds = null) {
     .from('sessions')
     .select('id, group_id, date, groups(id, name)')
     .not('attendance_saved_at', 'is', null)
+    .not('group_id', 'is', null) // private classes have no attendance
     .eq('cancelled', false)
     .gte('date', from)
     .lte('date', to)

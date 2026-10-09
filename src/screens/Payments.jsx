@@ -6,6 +6,7 @@ import { addMonths, currentMonthISO, formatMoney, formatMonth } from '../lib/for
 import { METHODS, METHOD_COLORS, STATUS_LABELS, ensureCharges, loadSettings, sortByStatus, totalsByMethod, withStatus } from '../lib/payments.js'
 import { nameClass } from '../lib/students.js'
 import { normalize } from '../lib/groups.js'
+import { chargeLabel } from '../lib/fees.js'
 import LoadState from '../components/LoadState.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import PayPanel from '../components/PayPanel.jsx'
@@ -17,11 +18,13 @@ async function loadMonth(month) {
   const charges = await unwrap(
     supabase
       .from('charges')
-      .select('*, students(id, name, sex, beca_percent, family_id), groups(id, name), payments(*)')
+      .select('*, students(id, name, sex, beca_percent, family_id), groups(id, name), sessions(date), payments(*)')
       .eq('month', month)
       .is('deleted_at', null),
   )
-  return { skipped, charges: sortByStatus(charges.map((c) => withStatus(c, settings.due_day))) }
+  // Months without fees still show private classes (she may teach some in the holidays).
+  const shown = skipped ? charges.filter((c) => c.kind === 'private') : charges
+  return { skipped, charges: sortByStatus(shown.map((c) => withStatus(c, settings.due_day))) }
 }
 
 export default function Payments() {
@@ -77,7 +80,7 @@ export default function Payments() {
         <EmptyState emoji="🏖️" title={`No fees in ${formatMonth(month)}`}>Holidays! You can change this in Settings.</EmptyState>
       )}
 
-      {charges && !result.data.skipped && (
+      {charges && (!result.data.skipped || charges.length > 0) && (
         <>
           {charges.length === 0 ? (
             <EmptyState emoji="💰" title="No fees this month yet">
@@ -116,7 +119,7 @@ export default function Payments() {
                   <span className="charge-name">
                     <span className={`card-title ${nameClass(c.students)}`}>{c.students.name}</span>
                     <span className="muted">
-                      {c.kind === 'materials' ? <strong>Materials</strong> : c.groups?.name}
+                      {c.kind === 'fee' ? c.groups?.name : <strong>{chargeLabel(c)}</strong>}
                       {c.kind === 'fee' && familyCounts[c.students.family_id] > 1 && ' · Sibling'}
                       {c.kind === 'fee' && c.students.beca_percent > 0 && ` · Scholarship ${c.students.beca_percent}%`}
                     </span>

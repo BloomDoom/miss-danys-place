@@ -1871,3 +1871,15 @@ a.charge-top .charge-name {
 .fee-line {
   font-size: 1.1rem;
 }
+
+/* ───────── Private classes
+   New class: the two kinds are big cards to tap. */
+.class-type {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+.class-when .chip {
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}

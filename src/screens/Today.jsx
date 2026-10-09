@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase.js'
 import { unwrap, useLoad } from '../lib/useLoad.js'
-import { addDays, formatDate, formatDay, formatTime, isoWeekday, todayISO, weekdayName } from '../lib/format.js'
-import { loadSessions, sessionPath, studentsOn, updateSession } from '../lib/sessions.js'
+import { addDays, formatDate, formatDay, formatMoney, formatTime, isoWeekday, todayISO, weekdayName } from '../lib/format.js'
+import { isPrivate, loadSessions, sessionPath, studentsOn, updateSession } from '../lib/sessions.js'
 import { loadPendingMakeups } from '../lib/makeups.js'
 import { saveErrorMessage } from '../lib/errors.js'
 import { useToast } from '../components/Toast.jsx'
@@ -14,10 +14,11 @@ import Birthdays from '../components/Birthdays.jsx'
 import { asset } from '../components/Doodle.jsx'
 import { birthdaysBetween } from '../lib/students.js'
 import { loadSettings } from '../lib/payments.js'
+import { nameClass } from '../lib/students.js'
 
 async function loadDay(date) {
   const sessions = await loadSessions(date, date)
-  const groupIds = [...new Set(sessions.map((s) => s.group_id))]
+  const groupIds = [...new Set(sessions.filter((s) => s.group_id).map((s) => s.group_id))]
   const savedIds = sessions.filter((s) => s.id).map((s) => s.id)
   const [enrollments, absences, makeups, pending, withBirthday, settings] = await Promise.all([
     groupIds.length
@@ -118,7 +119,7 @@ export default function Today() {
             </ul>
           )}
 
-          <Link to={`/class/new?date=${date}`} className="btn-secondary">+ Add extra class</Link>
+          <Link to={`/class/new?date=${date}`} className="btn-secondary">+ Add a class</Link>
           <CancelDay sessions={sessions} reload={result.reload} />
         </>
       )}
@@ -143,16 +144,28 @@ function SessionCard({ session: s }) {
     <Link to={sessionPath(s)} className={`card session-card ${dimmed ? 'dimmed' : ''}`}>
       <span className="session-time">{formatTime(s.start_time)}</span>
       <span className="session-info">
-        <span className="card-title">
-          {s.group.name}
-          {!s.slot_id && <span className="badge">Extra</span>}
-        </span>
-        <span className="muted">
-          {s.studentCount === 1 ? '1 student' : `${s.studentCount} students`}
-          {s.makeupCount > 0 && (
-            <strong className="makeup-count"> · +{s.makeupCount} make-up{s.makeupCount > 1 && 's'}</strong>
-          )}
-        </span>
+        {isPrivate(s) ? (
+          <>
+            <span className="card-title">
+              <span className={nameClass(s.student)}>{s.student.name}</span>
+              <span className="badge">Private</span>
+            </span>
+            <span className="muted">Private class{s.price > 0 && ` · ${formatMoney(s.price)}`}</span>
+          </>
+        ) : (
+          <>
+            <span className="card-title">
+              {s.group.name}
+              {!s.slot_id && <span className="badge">Extra</span>}
+            </span>
+            <span className="muted">
+              {s.studentCount === 1 ? '1 student' : `${s.studentCount} students`}
+              {s.makeupCount > 0 && (
+                <strong className="makeup-count"> · +{s.makeupCount} make-up{s.makeupCount > 1 && 's'}</strong>
+              )}
+            </span>
+          </>
+        )}
         {status}
       </span>
     </Link>

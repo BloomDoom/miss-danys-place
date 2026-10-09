@@ -57,10 +57,11 @@ export function activePayments(charge) {
 //   balance = what's still owed
 //   status  = 'paid' | 'partial' | 'unpaid' | 'overdue'
 // Overdue = not fully paid and today is after the due day of that month.
+// A private class is due on the day of the class (needs `sessions(date)`).
 export function withStatus(charge, dueDay) {
   const paid = activePayments(charge).reduce((sum, p) => sum + p.amount, 0)
   const balance = Math.max(charge.amount - paid, 0)
-  const dueDate = charge.month.slice(0, 8) + String(dueDay).padStart(2, '0')
+  const dueDate = charge.sessions?.date ?? charge.month.slice(0, 8) + String(dueDay).padStart(2, '0')
 
   let status = 'paid'
   if (balance > 0) {

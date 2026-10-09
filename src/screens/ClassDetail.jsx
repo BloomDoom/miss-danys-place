@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase.js'
 import { unwrap, useLoad } from '../lib/useLoad.js'
-import { formatDay, formatTime } from '../lib/format.js'
-import { ensureSaved, loadSession, sessionPath, studentsOn, updateSession } from '../lib/sessions.js'
+import { formatDay, formatMoney, formatTime, parseAmount } from '../lib/format.js'
+import { ensureSaved, isPrivate, loadSession, sessionPath, studentsOn, updateSession } from '../lib/sessions.js'
+import { STATUS_LABELS, loadSettings, withStatus } from '../lib/payments.js'
 import { loadMakeupsFor, updateMakeup } from '../lib/makeups.js'
 import { saveErrorMessage } from '../lib/errors.js'
 import { useToast } from '../components/Toast.jsx'
@@ -18,6 +19,7 @@ import Doodle from '../components/Doodle.jsx'
 // weekly class that hasn't been saved yet).
 async function loadClass(params) {
   const session = await loadSession(params)
+  if (isPrivate(session)) return loadPrivateClass(session)
   const [enrollments, absences, makeups] = await Promise.all([
     unwrap(supabase.from('enrollments').select('start_date, end_date, students(id, name, sex, active)').eq('group_id', session.group_id)),
     session.id ? unwrap(supabase.from('absences').select('*').eq('session_id', session.id).is('deleted_at', null)) : [],
@@ -27,6 +29,18 @@ async function loadClass(params) {
   ])
   const absentIds = new Set(absences.map((a) => a.student_id))
   return { session, absentIds, makeups, students: studentsOn(enrollments, session.date, absentIds) }
+}
+
+// A private class has no attendance list: just its student and what they owe for it.
+async function loadPrivateClass(session) {
+  const [settings, charge] = await Promise.all([
+    loadSettings(),
+    unwrap(
+      supabase.from('charges').select('*, payments(*), sessions(date)').eq('session_id', session.id)
+        .is('deleted_at', null).maybeSingle(),
+    ),
+  ])
+  return { session, charge: charge && withStatus(charge, settings.due_day) }
 }
 
 // This group's students plus make-up students from other groups.
@@ -50,8 +64,8 @@ export default function ClassDetail() {
         <>
           <div className="doodle-wrap">
             <h1>
-              {session.group.name}
-              {!session.slot_id && <span className="badge">Extra</span>}
+              {isPrivate(session) ? session.student.name : session.group.name}
+              {isPrivate(session) ? <span className="badge">Private</span> : !session.slot_id && <span className="badge">Extra</span>}
             </h1>
             <Doodle />
           </div>
@@ -62,13 +76,18 @@ export default function ClassDetail() {
             <p className="muted">Moved from its usual day, {formatDay(session.original_date)}.</p>
           )}
 
-          {session.cancelled ? (
+          {isPrivate(session) ? (
+            <>
+              {session.cancelled && <p className="notice">This class is cancelled.</p>}
+              <PrivateClassPrice {...result.data} />
+            </>
+          ) : session.cancelled ? (
             <p className="notice">This class is cancelled.</p>
           ) : (
             // key: start the list fresh from the database whenever the class or its saved attendance changes
             <Attendance key={`${session.id}_${session.attendance_saved_at}`} {...result.data} reload={result.reload} onSaved={goBack} />
           )}
-          {!session.cancelled && <GiveRewards students={everyoneIn(result.data)} />}
+          {!session.cancelled && !isPrivate(session) && <GiveRewards students={everyoneIn(result.data)} />}
           <ClassOptions session={session} reload={result.reload} />
         </>
       )}
@@ -180,12 +199,30 @@ function Attendance({ session, students, absentIds, makeups, reload, onSaved }) 
   )
 }
 
+// The price and whether it's paid. Paying is done from the student, like any fee.
+function PrivateClassPrice({ session, charge }) {
+  return (
+    <section className="section">
+      <p className="class-when">
+        Price: {formatMoney(session.price ?? 0)}
+        {charge && <span className={`chip chip-${charge.status}`}>{STATUS_LABELS[charge.status]}</span>}
+      </p>
+      {charge && charge.status !== 'paid' && <p className="muted">Still owed: {formatMoney(charge.balance)}</p>}
+      <Link to={`/students/${session.student.id}`} className="btn-secondary">
+        {charge && charge.status !== 'paid' ? `Mark it paid on ${session.student.name}’s page` : `Open ${session.student.name}`}
+      </Link>
+    </section>
+  )
+}
+
 function ClassOptions({ session, reload }) {
   const showToast = useToast()
   const navigate = useNavigate()
   const [moving, setMoving] = useState(false)
   const [newDate, setNewDate] = useState(session.date)
   const [newTime, setNewTime] = useState(formatTime(session.start_time))
+  const [pricing, setPricing] = useState(false)
+  const [newPrice, setNewPrice] = useState(String(session.price ?? ''))
   const [error, setError] = useState('')
 
   // Saves changes, then opens the class by its id: a class that was only
@@ -214,10 +251,24 @@ function ClassOptions({ session, reload }) {
     if (ok) setMoving(false)
   }
 
+  async function changePrice(e) {
+    e.preventDefault()
+    const value = parseAmount(newPrice)
+    if (value === null) return setError('Type the price, for example 15000. Use 0 if it’s free.')
+    const ok = await change({ price: value }, `Price changed to ${formatMoney(value)}`, { price: session.price })
+    if (ok) setPricing(false)
+  }
+
   return (
     <section className="section">
-      <h2>Change this class only</h2>
-      <p className="muted">The usual weekly schedule stays the same.</p>
+      {isPrivate(session) ? (
+        <h2>Change this class</h2>
+      ) : (
+        <>
+          <h2>Change this class only</h2>
+          <p className="muted">The usual weekly schedule stays the same.</p>
+        </>
+      )}
 
       {session.cancelled ? (
         <button className="btn-secondary" onClick={() => change({ cancelled: false }, 'Class is back on')}>
@@ -240,9 +291,21 @@ function ClassOptions({ session, reload }) {
             <button className="btn-primary">Move class</button>
           </div>
         </form>
+      ) : pricing ? (
+        <form onSubmit={changePrice} className="slot-box">
+          <label>
+            New price
+            <input inputMode="numeric" value={newPrice} onChange={(e) => setNewPrice(e.target.value)} autoFocus />
+          </label>
+          <div className="btn-row">
+            <button type="button" className="btn-secondary" onClick={() => setPricing(false)}>Cancel</button>
+            <button className="btn-primary">Save price</button>
+          </div>
+        </form>
       ) : (
         <div className="stack">
           <button className="btn-secondary" onClick={() => setMoving(true)}>Move to another day or time</button>
+          {isPrivate(session) && <button className="btn-secondary" onClick={() => setPricing(true)}>Change the price</button>}
           <button className="btn-secondary" onClick={() => change({ cancelled: true }, 'Class cancelled', { cancelled: false })}>
             Cancel this class
           </button>

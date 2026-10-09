@@ -11,12 +11,19 @@ import { supabase } from './supabase.js'
 import { unwrap } from './useLoad.js'
 import { datesBetween, isoWeekday } from './format.js'
 
-const SESSION_FIELDS = '*, groups(id, name)'
+const SESSION_FIELDS = '*, groups(id, name), students(id, name, sex)'
+
+// A saved row, shaped like the classes the app passes around.
+// Private classes have no group: `group` is null and `student` is set.
+function fromRow(s) {
+  return { ...s, group: s.groups, student: s.students }
+}
 
 // All classes between two dates (both included), sorted by date and time.
-// Pass groupId to get only one group's classes.
+// Pass groupId to get only one group's classes (no private ones).
 //
-// Each class looks like a `sessions` row plus `group: { id, name }`.
+// Each class looks like a `sessions` row plus `group: { id, name }`
+// (or, for a private class, group null and `student: { id, name, sex }`).
 // Calculated classes have id = null. A class moved to another day also
 // appears on its original day with `movedAway: { date, start_time }`, so
 // that day can say "Moved to Friday".
@@ -55,7 +62,7 @@ export function mergeSessions(slots, stored, from, to) {
 
   // 2. saved classes
   for (const s of stored) {
-    const session = { ...s, group: s.groups }
+    const session = fromRow(s)
     if (s.date >= from && s.date <= to) list.push(session)
     const movedAway = s.original_date && s.original_date !== s.date
     if (movedAway && s.original_date >= from && s.original_date <= to) {
@@ -87,13 +94,12 @@ function fromSlot(slot, date) {
 // calculated class (which may have been saved in the meantime).
 export async function loadSession({ id, slotId, date }) {
   if (id) {
-    const s = await unwrap(supabase.from('sessions').select(SESSION_FIELDS).eq('id', id).single())
-    return { ...s, group: s.groups }
+    return fromRow(await unwrap(supabase.from('sessions').select(SESSION_FIELDS).eq('id', id).single()))
   }
   const saved = await unwrap(
     supabase.from('sessions').select(SESSION_FIELDS).eq('slot_id', slotId).eq('original_date', date).maybeSingle(),
   )
-  if (saved) return { ...saved, group: saved.groups }
+  if (saved) return fromRow(saved)
   const slot = await unwrap(supabase.from('group_slots').select('*, groups(id, name)').eq('id', slotId).single())
   return fromSlot(slot, date)
 }
@@ -119,6 +125,11 @@ export async function updateSession(session, changes) {
   const saved = await ensureSaved(session)
   await unwrap(supabase.from('sessions').update(changes).eq('id', saved.id))
   return { ...saved, ...changes }
+}
+
+// Private classes are for one student, with their own price.
+export function isPrivate(session) {
+  return Boolean(session.student_id)
 }
 
 // Link to a class screen. Calculated classes have no id yet, so their

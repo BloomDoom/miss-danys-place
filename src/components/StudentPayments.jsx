@@ -4,7 +4,7 @@ import { unwrap, useLoad } from '../lib/useLoad.js'
 import { currentMonthISO, formatDate, formatMoney, formatMonth, parseAmount } from '../lib/format.js'
 import { METHODS, STATUS_LABELS, activePayments, ensureCharges, loadSettings, withStatus } from '../lib/payments.js'
 import { saveErrorMessage } from '../lib/errors.js'
-import { CHARGE_KINDS } from '../lib/fees.js'
+import { CHARGE_KINDS, chargeLabel } from '../lib/fees.js'
 import { useToast } from './Toast.jsx'
 import LoadState from './LoadState.jsx'
 import PayPanel from './PayPanel.jsx'
@@ -15,7 +15,7 @@ async function loadCharges(studentId) {
   const charges = await unwrap(
     supabase
       .from('charges')
-      .select('*, students(id, name), groups(id, name), payments(*)')
+      .select('*, students(id, name), groups(id, name), sessions(date), payments(*)')
       .eq('student_id', studentId)
       .is('deleted_at', null)
       .order('month', { ascending: false }),
@@ -23,7 +23,7 @@ async function loadCharges(studentId) {
   return charges.map((c) => withStatus(c, settings.due_day))
 }
 
-// A student's payment history: one card per monthly fee, newest first.
+// A student's payment history: one card per monthly fee (or private class), newest first.
 export default function StudentPayments({ studentId }) {
   const result = useLoad(() => loadCharges(studentId), [studentId])
   const [paying, setPaying] = useState(null) // charge id with the pay panel open
@@ -48,7 +48,7 @@ export default function StudentPayments({ studentId }) {
                 <div className="charge-top">
                   <span className="charge-name">
                     <span className="card-title">{formatMonth(c.month)}</span>
-                    <span className="muted">{c.kind === 'materials' ? CHARGE_KINDS.materials : c.groups?.name}</span>
+                    <span className="muted">{chargeLabel(c)}</span>
                   </span>
                   <span className="charge-right">
                     <span className={`chip chip-${c.status}`}>{STATUS_LABELS[c.status]}</span>
@@ -148,7 +148,7 @@ function EditCharge({ charge, onDone }) {
   return (
     <form onSubmit={handleSubmit} className="slot-box">
       <label>
-        {charge.kind === 'materials' ? 'Materials' : 'Fee'} for {formatMonth(charge.month)}
+        {charge.kind === 'fee' ? 'Fee' : CHARGE_KINDS[charge.kind]} for {formatMonth(charge.month)}
         <input inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value)} autoFocus />
       </label>
       <label>

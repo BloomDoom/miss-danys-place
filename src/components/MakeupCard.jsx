@@ -111,11 +111,11 @@ export default function MakeupCard({ absence: a, showStudent, onChanged }) {
 function ClassPicker({ absence, onPick, onCancel }) {
   const today = todayISO()
   const result = useLoad(() => loadSessions(today, addDays(today, 13)), [today])
-  // Hide cancelled classes, the class they missed, and the make-up already booked.
+  // Hide private classes, cancelled classes, the class they missed, and the make-up already booked.
   // (Calculated classes have id null, so only compare saved ids.)
   const isSame = (s, id) => s.id !== null && s.id === id
   const options = result.data?.filter(
-    (s) => !s.cancelled && !s.movedAway && !isSame(s, absence.session.id) && !isSame(s, absence.makeup_session_id),
+    (s) => s.group && !s.cancelled && !s.movedAway && !isSame(s, absence.session.id) && !isSame(s, absence.makeup_session_id),
   )
   const days = [...new Set(options?.map((s) => s.date))]
 

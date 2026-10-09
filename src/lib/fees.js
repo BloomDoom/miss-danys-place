@@ -4,10 +4,19 @@
 // "what they pay" on a student.
 import { supabase } from './supabase.js'
 import { unwrap } from './useLoad.js'
-import { currentMonthISO } from './format.js'
+import { currentMonthISO, formatDay } from './format.js'
 import { normalize } from './groups.js'
 
-export const CHARGE_KINDS = { fee: 'Monthly fee', materials: 'Materials' }
+export const CHARGE_KINDS = { fee: 'Monthly fee', materials: 'Materials', private: 'Private class' }
+
+// What a charge is for, shown under the student's name: the group (for
+// the monthly fee), "Materials" or "Private class · Tuesday 14 Oct".
+// Needs groups(name) and sessions(date) in the select.
+export function chargeLabel(charge) {
+  if (charge.kind === 'private') return `${CHARGE_KINDS.private}${charge.sessions ? ` · ${formatDay(charge.sessions.date)}` : ''}`
+  if (charge.kind === 'materials') return CHARGE_KINDS.materials
+  return charge.groups?.name
+}
 
 export function loadFeePrices() {
   return unwrap(supabase.from('fee_prices').select('*').order('effective_month'))
