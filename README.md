@@ -181,7 +181,7 @@ exists there. Same idea, different words:
 
 **Shared files** (state on 2026-10-11):
 - **Identical:** `lib/bigText, csv, keyboard, phone, supabase, useLoad, useOnline, useTabSwipe`, both workflows.
-- **Small differences:** `lib/errors, format, vcard`; components `BackButton, Birthdays, ErrorBoundary, LoadState, PayPanel, ScreenFooter, SlotFields, Toast`; `Login`.
-- **Very different:** `lib/sessions, payments, attendance, groups, backup`; screens `Today, ClassDetail, ClassNew, Groups, GroupNew, GroupDetail, GroupMessage, Import, Insights, Payments, Settings`; `schema.sql`.
+- **Small differences:** `lib/backup, errors, format, vcard`; components `BackButton, Birthdays, ErrorBoundary, LoadState, PayPanel, ScreenFooter, SlotFields, Toast`; `Login`.
+- **Very different:** `lib/sessions, payments, attendance, groups`; screens `Today, ClassDetail, ClassNew, Groups, GroupNew, GroupDetail, GroupMessage, Import, Insights, Payments, Settings`; `schema.sql`.
 - **Only here:** make-ups, exams, rewards, school fee/siblings/scholarships, private classes, `BroadcastMessage`, `EmptyState`, `Doodle`.
 - **Only in Zona Fit:** shop + wallet + clothes lent to members, plans, per-time sign-up (`SlotPicker`, `AutoFillTimes`), payment-method chart (`MethodBars`), `lib/asset.js`.
