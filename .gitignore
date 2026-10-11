@@ -12,3 +12,6 @@ Thumbs.db
 # Student data from the paper sheets (personal info; the repo is public)
 students/
 prompt.txt
+
+# Claude Code worktrees (CLAUDE.md in .claude/ is tracked)
+.claude/worktrees/

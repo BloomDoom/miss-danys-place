@@ -18,6 +18,7 @@ supabase/
   05-student-sex.sql        girl/boy, for pink/blue names
   06-fees.sql               one school fee, sibling price, scholarships (becas), April materials
   07-exams.sql              exams (level + date + time) with many students each
+  08-private-classes.sql    private classes (one student, a time and a price, no group)
   reset-test-data.sql       ⚠️ erases all data (only before loading real data)
 src/
   main.jsx                  starts React, the router and the crash screen
@@ -26,20 +27,41 @@ src/
   lib/
     sessions.js             which classes happen on which day (the core logic)
     payments.js             fee statuses: paid / partial / unpaid / overdue
+    fees.js                 school fee, sibling price, scholarships; charge labels
     makeups.js              make-up statuses
-    students.js             contacts, age, birthdays
+    exams.js                Trinity levels, results, exams per year
+    students.js             contacts (who gets messages), age, birthdays
     rewards.js              reward stickers
     attendance.js           attendance % per student and group
+    groups.js               slot summaries, current enrollments, normalize() for search
     bigText.js              detects a large iPhone text size (data-big-text)
+    keyboard.js             data-typing while the keyboard is open (hides the tab bar)
+    useTabSwipe.js          swipe sideways between tabs
     format.js               dates, months, money (Argentine format)
     useLoad.js              loading data in a screen (+ unwrap)
     backup.js, csv.js       CSV export and import
-    phone.js, groups.js, errors.js, supabase.js, useOnline.js
-  components/               reusable pieces (tab bar, toast, pay panel, ...)
+    phone.js, vcard.js      WhatsApp links, contact cards
+    errors.js, supabase.js, useOnline.js
+  components/               reusable pieces (see "Screens" below)
   screens/                  one file per screen
 public/                     icons (copied as-is)
 .github/workflows/          deploy to GitHub Pages + keep Supabase awake
 ```
+
+### Screens (routes in `src/App.jsx`)
+| Area | Screens | Main components |
+|---|---|---|
+| Today | `Today` (`/`), `ClassDetail`, `ClassNew` (group or private class) | `MakeupBanner`, `Birthdays`, `GiveRewards`, `SlotFields` |
+| Groups | `Groups`, `GroupNew`, `GroupDetail`, `GroupMessage` | `BroadcastMessage`, `SlotFields` |
+| Students | `Students`, `StudentNew`, `StudentDetail` | `StudentFields`, `StudentFee`, `StudentPayments`, `StudentAttendance`, `StudentAbsences`, `StudentRewards` |
+| Make-ups | `Makeups` | `MakeupCard` |
+| Exams | `Exams`, `ExamDetail`, `ExamEdit`, `ExamMessage` | `ExamForm`, `BroadcastMessage` |
+| Payments | `Payments` | `PayPanel` |
+| Other | `Insights`, `Settings`, `Import`, `Login` | `RewardTypes`, `TabBar`, `Toast`, `LoadState`, `EmptyState`, `Doodle`, `ScreenFooter`, `BackButton`, `ErrorBoundary` |
+
+**Words:** a class is a `group` (table `groups`), one class on one day is a
+`session`, a pupil is a `student`. A private class is a `session` with
+`student_id` and `price` and no `group_id`.
 
 **How classes work:** weekly classes are never stored in advance. For each
 day the app calculates them from `group_slots`, and mixes in rows from
@@ -53,6 +75,28 @@ in a group: the regular or sibling fee, minus their scholarship %. In April ther
 also a Materials charge of the full fee. Changes to the fee, a scholarship or
 siblings only update this month's and next month's fees with no payments
 and no hand edit. Months before October 2026 kept the old per-group prices.
+`src/lib/fees.js` mirrors the database math to show "what they pay" on a student.
+
+**Private classes:** one student, a date/time and a price, no group (a
+`sessions` row). Its price becomes a charge with `kind = 'private'` so it shows
+on Payments; a trigger keeps that charge in step when the class is moved,
+re-priced or cancelled (see `supabase/08-private-classes.sql`).
+
+**Make-ups:** every absence has a make-up status: missed → scheduled (booked
+into any group's class) → done, or waived. Pending ones show on Today, Students and
+the Make-ups screen (see `src/lib/makeups.js`).
+
+**Exams:** Trinity exams, once a year. An exam (`exams`) is one level on one
+date and time; the students sitting it are rows in `trinity_exams`, each with
+their own result (see `src/lib/exams.js`).
+
+**Rewards:** she creates reward types in Settings (⭐ Great effort…) and gives
+them to students; each one is a row in `rewards`, Undo marks it deleted.
+
+**Messages:** each student has contacts (`student_contacts`, ordered by
+`position`); the first one with a phone gets birthday and group WhatsApp
+messages ("Send messages here" moves a contact to the top). See `mainContact`
+in `src/lib/students.js`.
 
 ## One-time setup
 
@@ -61,7 +105,8 @@ and no hand edit. Months before October 2026 kept the old per-group prices.
    São Paulo region (closest to Argentina).
 2. **SQL Editor → New query**: paste all of `supabase/schema.sql` and press **Run**.
    Then do the same with `supabase/02-payments.sql`, `03-round2.sql`, `04-school-year.sql`,
-   `05-student-sex.sql`, `06-fees.sql` and `07-exams.sql`, in that order.
+   `05-student-sex.sql`, `06-fees.sql`, `07-exams.sql` and `08-private-classes.sql`,
+   in that order.
 3. **Authentication → Sign In / Providers**: turn **off** "Allow new users to sign up".
 4. **Authentication → Users → Add user → Create new user**: her email and a
    password, with "Auto Confirm User" ticked.
@@ -119,3 +164,24 @@ exist are skipped, so importing the same file twice is safe.
   `deleted_at` date instead, and the database doesn't even allow deleting them.
 - **Updates:** after a deploy, the phone picks up the new version the next time
   the app is opened (sometimes it takes a second open).
+
+## Sister project: Zona Fit (`../zona-fit`)
+Zona Fit (gym admin) was built from this app. Same stack, same folders, same
+ideas (sessions calculated from `group_slots`, `ensure_charges`, soft deletes,
+CSV import/backup). Before building something here, check whether it already
+exists there. Same idea, different words:
+
+| Here | Zona Fit |
+|---|---|
+| `students`, `Student*` screens | `members` (socios), `Member*` screens |
+| one school fee + siblings + scholarships (`fees.js`) | a `plan` per member with price history (`plan_prices`) |
+| student enrolled in a whole group (`enrollments`) | member signed up to weekly times (`slot_enrollments`, `roster.js`) |
+| numbered SQL files `02…08` | `schema.sql` always complete + dated files in `supabase/migrations/` |
+| UI in English | UI in Spanish |
+
+**Shared files** (state on 2026-10-11):
+- **Identical:** `lib/bigText, csv, keyboard, phone, supabase, useLoad, useOnline, useTabSwipe`, both workflows.
+- **Small differences:** `lib/errors, format, vcard`; components `BackButton, Birthdays, ErrorBoundary, LoadState, PayPanel, ScreenFooter, SlotFields, Toast`; `Login`.
+- **Very different:** `lib/sessions, payments, attendance, groups, backup`; screens `Today, ClassDetail, ClassNew, Groups, GroupNew, GroupDetail, GroupMessage, Import, Insights, Payments, Settings`; `schema.sql`.
+- **Only here:** make-ups, exams, rewards, school fee/siblings/scholarships, private classes, `BroadcastMessage`, `EmptyState`, `Doodle`.
+- **Only in Zona Fit:** shop + wallet + clothes lent to members, plans, per-time sign-up (`SlotPicker`, `AutoFillTimes`), payment-method chart (`MethodBars`), `lib/asset.js`.
